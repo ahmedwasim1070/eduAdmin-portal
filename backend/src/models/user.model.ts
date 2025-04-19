@@ -2,18 +2,27 @@ import mongoose, { Schema, Document, Model } from "mongoose";
 import bcrypt from "bcrypt";
 
 export interface IUser extends Document {
+  _id: string;
   fullName: string;
   email: string;
   contactNumber: string;
   password: string;
   role: "root" | "principle" | "admin" | "student";
+  collegeName: string;
   permissions: string[];
+  documentStatus: "approved" | "rejected" | "pending";
   status: "active" | "deleted" | "suspended";
   loginAttempt: number;
   lastLogin?: Date;
   createdBy?: mongoose.Types.ObjectId;
   createdAt?: Date;
   updatedAt?: Date;
+
+  // Functions
+  comparePassword(userPassword: string): Promise<boolean>;
+  canCreateUser(targetRole: string): boolean;
+  incrementLoginAttempt(): void;
+  resetLoginAttempt(): void;
 }
 
 const userSchema: Schema<IUser> = new Schema(
@@ -47,6 +56,21 @@ const userSchema: Schema<IUser> = new Schema(
       type: String,
       required: true,
       enum: ["root", "principle", "admin", "student"],
+    },
+    collegeName: {
+      type: String,
+      required: function (this: IUser) {
+        return this.role !== "root";
+      },
+      trim: true,
+    },
+    documentStatus: {
+      type: String,
+      required: function (this: IUser) {
+        return this.role === "student";
+      },
+      enum: ["approved", "rejected", "pending"],
+      default: "pending",
     },
     permissions: {
       type: [String],
@@ -82,10 +106,10 @@ const userSchema: Schema<IUser> = new Schema(
   { timestamps: true }
 );
 
-userSchema.methods.comparePassword = async function (
+userSchema.methods.comparePassword = function (
   userPassword: string
 ): Promise<boolean> {
-  return await bcrypt.compare(userPassword, this.password);
+  return bcrypt.compare(userPassword, this.password);
 };
 
 userSchema.methods.canCreateUser = function (
@@ -102,18 +126,14 @@ userSchema.methods.canCreateUser = function (
   return creationRules[this.role]?.includes(targetRole) || false;
 };
 
-userSchema.methods.incrementLoginAttempt = function (): void | boolean {
-  if (this.loginAttempt <= 5) {
-    this.loginAttempt += 1;
-    return this.save();
-  } else {
-    return false;
-  }
+userSchema.methods.incrementLoginAttempt = function (): void {
+  this.loginAttempt += 1;
+  return;
 };
 
 userSchema.methods.resetLoginAttempt = function (): void {
   this.loginAttempt = 0;
-  return this.save();
+  return;
 };
 
 userSchema.pre<IUser>("save", async function (next) {

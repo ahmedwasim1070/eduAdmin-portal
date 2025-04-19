@@ -1,13 +1,20 @@
 import { Router } from "express";
 
-import { registerSignup, login } from "../controllers/auth.controller.js";
+import {
+  checkAuth,
+  login,
+  registerSignup,
+} from "../controllers/auth.controller.js";
 
-import { isRoot } from "../middlewares/auth.middleware.js";
+import { protectRoute } from "../middlewares/auth.middleware.js";
 
 const router = Router();
 
+// Checks token
+router.get("/check", protectRoute, checkAuth);
 // Root signup
-router.post("/signup/root", isRoot, registerSignup);
+router.post("/signup/root", registerSignup);
+// User login
 router.post("/login", login);
 
 export default router;
