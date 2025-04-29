@@ -19,6 +19,28 @@ export const checkAuth = async (req: Request, res: Response): Promise<void> => {
   }
 };
 
+// Checks Root exsists
+export const checkRoot = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const isRoot = await userModel.findOne({ role: "root" });
+    if (isRoot) {
+      res
+        .status(409)
+        .json({ message: "Root user already exsists", exsists: true });
+      return;
+    }
+
+    res
+      .status(200)
+      .json({ message: "Root does not exsists Signup ! ", exsists: false });
+    return;
+  } catch (error) {
+    console.log("Error in protectRegisterRoot controller : ", error);
+    res.status(500).json({ message: "Internel server error ! " });
+    return;
+  }
+};
+
 export const login = async (req: Request, res: Response): Promise<void> => {
   const { email, password } = req.body;
   if (!email || !password) {
@@ -65,28 +87,28 @@ export const login = async (req: Request, res: Response): Promise<void> => {
 };
 
 // Root Signup
-export const registerSignup = async (
+export const registerRoot = async (
   req: Request,
   res: Response
 ): Promise<void> => {
-  const { fullName, email, contactNumber, password, role, status } = req.body;
-  if (!fullName || !email || !contactNumber || !password || !role || !status) {
+  const { fullName, email, contactNumber, password } = req.body;
+  if (!fullName || !email || !contactNumber || !password) {
     res.status(400).json({ message: "All fields are required" });
     return;
   }
 
   try {
-    const emailRegex = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{0,3})+$/;
-    if (!emailRegex.test(email)) {
-      res.status(400).json({ message: "Enter the valid email" });
-      return;
-    }
-
-    const root = await userModel.findOne({ email });
-    if (root) {
+    const user = await userModel.findOne({ email });
+    if (user) {
       res
         .status(409)
         .json({ message: "Account already registered with one account" });
+      return;
+    }
+
+    const emailRegex = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{0,3})+$/;
+    if (!emailRegex.test(email)) {
+      res.status(400).json({ message: "Enter the valid email" });
       return;
     }
 
@@ -106,16 +128,16 @@ export const registerSignup = async (
       email,
       contactNumber,
       password,
-      role,
-      status,
+      role: "root",
+      status: "active",
     });
     await newRoot.save();
 
     console.log(`${newRoot.email} just got registered as root`);
-    res.status(201).json({ message: "Root created successfully!" });
+    res.status(200).json({ message: "Root created successfully!" });
     return;
   } catch (error) {
-    console.error("Error in resgisterSignup controller:", error);
+    console.error("Error in registerRoot controller:", error);
     res.status(500).json({ message: "Internal server error !" });
     return;
   }

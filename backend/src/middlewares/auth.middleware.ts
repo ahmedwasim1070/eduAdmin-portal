@@ -10,6 +10,7 @@ export interface CustomJwtPyaload extends JwtPayload {
   userId: string;
 }
 
+// Check the Auth cookie
 export const protectRoute = async (
   req: Request,
   res: Response,
@@ -40,5 +41,26 @@ export const protectRoute = async (
   } catch (error) {
     console.log("Error in checkAuth middleware ", error);
     res.status(500).json({ message: "Internal server error!" });
+    return;
+  }
+};
+
+export const protectRegisterRoot = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const isRoot = await userModel.findOne({ role: "root" });
+    if (isRoot) {
+      res.status(409).json({ message: " Root user already exsists !" });
+      return;
+    }
+
+    next();
+  } catch (error) {
+    console.log("Error in protectRegisterRoot middleware ", error);
+    res.status(500).json({ message: "Internal server error!" });
+    return;
   }
 };

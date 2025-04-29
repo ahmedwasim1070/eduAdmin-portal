@@ -1,1 +1,15 @@
 @import "tailwindcss";
+
+@theme {
+  /* Custom Colors */
+  --color-backgroundColor: #FAF9F6;
+  --color-textColor: #841518;
+  --color-primaryColor: #5f1e1e;
+  --color-lightPrimary: #6d2323;
+  --color-secondaryColor: #a2cd3a;
+  /* Custom Screen's */
+  --breakpoint-xs: 24rem;
+  --breakpoint-xxs: 16rem;
+  /* Custom Fonts */
+  --font-gfsDidot: "GFS-Didot";
+}
