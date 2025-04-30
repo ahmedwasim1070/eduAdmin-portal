@@ -1,7 +1,11 @@
+import { Login } from "../components/Login";
+
 function LoginPage() {
   return (
     <>
-      <div></div>
+      <section className="w-full h-[100vh] flex justify-center items-center bg-gray-50">
+        <Login />
+      </section>
     </>
   );
 }

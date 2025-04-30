@@ -10,7 +10,7 @@ function RootSignupPage() {
   }, [checkRoot]);
   return (
     <>
-      <section className="w-full h-[100vh] flex justify-center items-center bg-backgroundColor">
+      <section className="w-full h-[100vh] flex justify-center items-center bg-gray-50">
         <Signup />
       </section>
     </>

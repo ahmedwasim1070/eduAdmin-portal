@@ -5,8 +5,10 @@ export interface IUser extends Document {
   _id: string;
   fullName: string;
   email: string;
+  emailStatus: string;
   contactNumber: string;
   password: string;
+  otp: string;
   role: "root" | "principle" | "admin" | "student";
   collegeName: string;
   permissions: string[];
@@ -42,6 +44,11 @@ const userSchema: Schema<IUser> = new Schema(
         "Please fill a valid email address",
       ],
     },
+    emailStatus: {
+      type: String,
+      enum: ["verified", "not-verified"],
+      default: "not-verified",
+    },
     contactNumber: {
       type: String,
       required: [true, "Phone Number is required"],
@@ -50,7 +57,10 @@ const userSchema: Schema<IUser> = new Schema(
     password: {
       type: String,
       required: [true, "Password is required"],
-      minlength: [8, "Password should be alteast 8 characters"],
+    },
+    otp: {
+      type: String,
+      required: false,
     },
     role: {
       type: String,

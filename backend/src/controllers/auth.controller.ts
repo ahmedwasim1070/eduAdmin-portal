@@ -1,7 +1,8 @@
 import userModel, { IUser } from "../models/user.model.js";
 import { Response, Request } from "express";
-import { createToken } from "../lib/util.js";
+import { createToken, sendMail } from "../lib/util.js";
 import { CustomRequest } from "../middlewares/auth.middleware.js";
+import { error } from "console";
 
 // Check's Auth
 export const checkAuth = async (req: Request, res: Response): Promise<void> => {
@@ -61,7 +62,9 @@ export const login = async (req: Request, res: Response): Promise<void> => {
       return;
     }
     if (user.loginAttempt >= 5) {
-      res.status(408).json({ message: "To many wront attempts ! Timed out" });
+      res
+        .status(408)
+        .json({ message: "To many tries now login though Email !" });
       return;
     }
     user.incrementLoginAttempt();
@@ -83,6 +86,47 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     console.error("Error in login controller", error);
     res.status(500).json({ message: "Internal server error !" });
     return;
+  }
+};
+
+// Verify email
+export const verifyEmailReq = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  const { email } = req.body;
+  if (!email) {
+    res.status(400).json({ message: "Email is required !" });
+    return;
+  }
+  try {
+    const otp = await sendMail(email);
+
+    res.status(200).json({ message: "Verification OTP sent" });
+    return;
+  } catch (error) {
+    console.error("Error in verifyEmailReq : ", error);
+    res.status(500).json({ message: "Internel server error !" });
+    return;
+  }
+};
+
+// Logout
+export const logout = async (req: Request, res: Response): Promise<void> => {
+  try {
+    res.clearCookie("secret_key", {
+      httpOnly: true,
+      sameSite: "strict",
+      secure: process.env.NODE_ENV !== "development",
+    });
+
+    res
+      .status(200)
+      .json({ message: "Logged out sucessfully", loggedOut: true });
+    return;
+  } catch (error) {
+    console.error("Error in logout controller : ", error);
+    res.status(500).json({ message: "Internel server error !" });
   }
 };
 
