@@ -5,7 +5,7 @@ export interface IUser extends Document {
   _id: string;
   fullName: string;
   email: string;
-  emailStatus: string;
+  emailStatus: "verified" | "not-verified";
   contactNumber: string;
   password: string;
   otp: string;
@@ -22,6 +22,7 @@ export interface IUser extends Document {
 
   // Functions
   comparePassword(userPassword: string): Promise<boolean>;
+  compareOTP(userOTP: string): Promise<boolean>;
   canCreateUser(targetRole: string): boolean;
   incrementLoginAttempt(): void;
   resetLoginAttempt(): void;
@@ -122,6 +123,10 @@ userSchema.methods.comparePassword = function (
   return bcrypt.compare(userPassword, this.password);
 };
 
+userSchema.methods.compareOTP = function (userOTP: string): Promise<boolean> {
+  return bcrypt.compare(userOTP, this.otp);
+};
+
 userSchema.methods.canCreateUser = function (
   this: IUser,
   targetRole: string
@@ -147,13 +152,18 @@ userSchema.methods.resetLoginAttempt = function (): void {
 };
 
 userSchema.pre<IUser>("save", async function (next) {
-  if (!this.isModified("password")) return next();
-
   try {
-    this.password = await bcrypt.hash(this.password, 10);
+    if (this.isModified("password")) {
+      this.password = await bcrypt.hash(this.password, 10);
+    }
+
+    if (this.isModified("otp")) {
+      this.otp = await bcrypt.hash(this.otp, 10);
+    }
+
     next();
   } catch (error) {
-    console.error("Error while hashing the password ", error);
+    console.error("Error while hashing password/otp:", error);
     next(error as Error);
   }
 });

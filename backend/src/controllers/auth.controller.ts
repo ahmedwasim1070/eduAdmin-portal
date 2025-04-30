@@ -2,7 +2,6 @@ import userModel, { IUser } from "../models/user.model.js";
 import { Response, Request } from "express";
 import { createToken, sendMail } from "../lib/util.js";
 import { CustomRequest } from "../middlewares/auth.middleware.js";
-import { error } from "console";
 
 // Check's Auth
 export const checkAuth = async (req: Request, res: Response): Promise<void> => {
@@ -49,22 +48,19 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     return;
   }
 
+  const emailRegex = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{0,3})+$/;
+  if (!emailRegex.test(email)) {
+    res.status(400).json({ message: "Invalid email" });
+    return;
+  }
   try {
-    const emailRegex = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{0,3})+$/;
-    if (!emailRegex.test(email)) {
-      res.status(400).json({ message: "Enter the valid email" });
-      return;
-    }
-
     const user = (await userModel.findOne({ email })) as IUser;
     if (!user) {
-      res.status(404).json({ message: "User not found !" });
+      res.status(400).json({ message: "Invalid credentials" });
       return;
     }
     if (user.loginAttempt >= 5) {
-      res
-        .status(408)
-        .json({ message: "To many tries now login though Email !" });
+      res.status(408).json({ message: "Account blocked (LOGIN Though OTP)" });
       return;
     }
     user.incrementLoginAttempt();
@@ -79,6 +75,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     createToken(res, user._id);
     user.resetLoginAttempt();
     await user.save();
+
     console.log(`${email} just logged in !`);
     res.status(200).json({ message: "Credentials matched" });
     return;
@@ -89,23 +86,70 @@ export const login = async (req: Request, res: Response): Promise<void> => {
   }
 };
 
-// Verify email
-export const verifyEmailReq = async (
-  req: Request,
-  res: Response
-): Promise<void> => {
+// Request OTP for verification
+export const reqOTP = async (req: Request, res: Response): Promise<void> => {
   const { email } = req.body;
   if (!email) {
-    res.status(400).json({ message: "Email is required !" });
+    res.status(400).json({ message: "All fields are required !" });
     return;
   }
   try {
-    const otp = await sendMail(email);
+    const user = (await userModel.findOne({ email })) as IUser;
+    if (!user) {
+      res.status(404).json({ message: "User not found ! " });
+      return;
+    }
+    if (user.loginAttempt < 5) {
+      if (user.emailStatus !== "not-verified") {
+        res.status(400).json({ message: "Invalid Request !" });
+        return;
+      }
+    }
+
+    const OTP = await sendMail(email);
+    user.otp = OTP;
+    await user.save();
 
     res.status(200).json({ message: "Verification OTP sent" });
     return;
   } catch (error) {
-    console.error("Error in verifyEmailReq : ", error);
+    console.error("Error in verifyEmailReq controller : ", error);
+    res.status(500).json({ message: "Internel server error !" });
+    return;
+  }
+};
+
+// Match OTP
+export const verifyOTP = async (req: Request, res: Response): Promise<void> => {
+  const { email, otp } = req.body;
+  try {
+    const user = (await userModel.findOne({ email })) as IUser;
+    if (!user) {
+      res.status(404).json({ message: "User not found ! " });
+      return;
+    }
+    if (!user.otp) {
+      res.status(400).json({ message: "Invalid Request ! " });
+      return;
+    }
+
+    const validOTP = await user.compareOTP(otp);
+    if (!validOTP) {
+      res.status(400).json({ message: "OTP does not match" });
+      return;
+    }
+
+    user.otp = "";
+    user.emailStatus = "verified";
+    createToken(res, user._id);
+    user.resetLoginAttempt();
+    await user.save();
+
+    console.log(`${email} just logged in !`);
+    res.status(200).json({ message: "OTP matched" });
+    return;
+  } catch (error) {
+    console.error("Error in verifyOTP controller : ", error);
     res.status(500).json({ message: "Internel server error !" });
     return;
   }
