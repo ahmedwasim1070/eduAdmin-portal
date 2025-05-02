@@ -36,7 +36,7 @@ export const protectRoute = async (
       return;
     }
 
-    (req as CustomRequest).user = { user };
+    (req as CustomRequest).user = user;
     next();
   } catch (error) {
     console.log("Error in checkAuth middleware ", error);

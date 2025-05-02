@@ -1,12 +1,21 @@
-import userModel, { IUser } from "../models/user.model.js";
 import { Response, Request } from "express";
-import { createToken, sendMail } from "../lib/util.js";
+
+import userModel, { IUser } from "../models/user.model.js";
+
+import { createToken } from "../lib/util.js";
+
 import { CustomRequest } from "../middlewares/auth.middleware.js";
+
+import { mailOTP } from "./mailer.controller.js";
 
 // Check's Auth
 export const checkAuth = async (req: Request, res: Response): Promise<void> => {
+  const user = (req as CustomRequest).user;
   try {
-    console.log(`${(req as CustomRequest).user.user.email} just logged in ! `);
+    user.lastLogin = Date.now();
+    await user.save();
+
+    console.log(`${user.email} just logged in ! `);
     res.status(200).json({
       message: "Token verified - Logging In",
       user: (req as CustomRequest).user,
@@ -41,6 +50,7 @@ export const checkRoot = async (req: Request, res: Response): Promise<void> => {
   }
 };
 
+// Creates Cookie
 export const login = async (req: Request, res: Response): Promise<void> => {
   const { email, password } = req.body;
   if (!email || !password) {
@@ -59,12 +69,20 @@ export const login = async (req: Request, res: Response): Promise<void> => {
       res.status(400).json({ message: "Invalid credentials" });
       return;
     }
+
     if (user.loginAttempt >= 5) {
-      res.status(408).json({ message: "Account blocked (LOGIN Though OTP)" });
+      res.status(423).json({
+        message:
+          "Account blocked due to too many login attempts. Use OTP login.",
+        loginOTP: true,
+      });
       return;
     }
-    user.incrementLoginAttempt();
-    await user.save();
+
+    if (user.emailStatus === "verified") {
+      user.incrementLoginAttempt();
+      await user.save();
+    }
 
     const validCredentials = await user.comparePassword(password);
     if (!validCredentials) {
@@ -72,11 +90,17 @@ export const login = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
+    if (user.emailStatus === "not-verified") {
+      res
+        .status(401)
+        .json({ message: "Email address not verified !", verifyEmail: true });
+      return;
+    }
+
     createToken(res, user._id);
     user.resetLoginAttempt();
     await user.save();
 
-    console.log(`${email} just logged in !`);
     res.status(200).json({ message: "Credentials matched" });
     return;
   } catch (error) {
@@ -86,7 +110,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
   }
 };
 
-// Request OTP for verification
+// Requests OTP
 export const reqOTP = async (req: Request, res: Response): Promise<void> => {
   const { email } = req.body;
   if (!email) {
@@ -99,21 +123,35 @@ export const reqOTP = async (req: Request, res: Response): Promise<void> => {
       res.status(404).json({ message: "User not found ! " });
       return;
     }
-    if (user.loginAttempt < 5) {
+
+    if (user.loginAttempt === 0) {
       if (user.emailStatus !== "not-verified") {
         res.status(400).json({ message: "Invalid Request !" });
         return;
       }
     }
 
-    const OTP = await sendMail(email);
+    // Do not Pass if the request is under 5 minutes
+    if (
+      user.otpCreatedAt &&
+      !(Date.now() - user.otpCreatedAt > 5 * 60 * 1000)
+    ) {
+      res.status(429).json({
+        message: "OTP cooldown. Please wait before requesting again !",
+        coolDown: true,
+      });
+      return;
+    }
+
+    const OTP = await mailOTP(email);
     user.otp = OTP;
+    user.otpCreatedAt = Date.now();
     await user.save();
 
-    res.status(200).json({ message: "Verification OTP sent" });
+    res.status(200).json({ message: "OTP sended" });
     return;
   } catch (error) {
-    console.error("Error in verifyEmailReq controller : ", error);
+    console.error("Error in reqOTP controller : ", error);
     res.status(500).json({ message: "Internel server error !" });
     return;
   }
@@ -121,13 +159,26 @@ export const reqOTP = async (req: Request, res: Response): Promise<void> => {
 
 // Match OTP
 export const verifyOTP = async (req: Request, res: Response): Promise<void> => {
-  const { email, otp } = req.body;
+  const { email, otp, reqType } = req.body;
+  if (!email || !reqType || typeof otp !== "string" || otp.length !== 6) {
+    res.status(400).json({ message: "Invalid Request!" });
+    return;
+  }
+
+  if (
+    !reqType ||
+    !["verifyemail", "changepass", "otplogin", "forgetpass"].includes(reqType)
+  ) {
+    res.status(400).json({ message: "Invalid Request !" });
+    return;
+  }
   try {
     const user = (await userModel.findOne({ email })) as IUser;
     if (!user) {
       res.status(404).json({ message: "User not found ! " });
       return;
     }
+
     if (!user.otp) {
       res.status(400).json({ message: "Invalid Request ! " });
       return;
@@ -135,19 +186,45 @@ export const verifyOTP = async (req: Request, res: Response): Promise<void> => {
 
     const validOTP = await user.compareOTP(otp);
     if (!validOTP) {
-      res.status(400).json({ message: "OTP does not match" });
+      res.status(400).json({ message: "Invalid OTP" });
+      return;
+    }
+
+    // Expiry validation of OTP
+    if (Date.now() - user.otpCreatedAt > 5 * 60 * 1000) {
+      user.otp = "";
+      res.status(400).json({ message: "OTP Expired !" });
       return;
     }
 
     user.otp = "";
-    user.emailStatus = "verified";
-    createToken(res, user._id);
-    user.resetLoginAttempt();
-    await user.save();
 
-    console.log(`${email} just logged in !`);
-    res.status(200).json({ message: "OTP matched" });
-    return;
+    if (
+      user.emailStatus !== "verified" &&
+      ["verifyemail", "otplogin"].includes(reqType)
+    ) {
+      user.emailStatus = "verified";
+
+      createToken(res, user._id);
+
+      user.resetLoginAttempt();
+
+      await user.save();
+
+      console.log(`${email} just logged in !`);
+      res.status(200).json({ message: "OTP verified !", login: true });
+      return;
+    }
+
+    if (reqType === "changepass") {
+      res.status(200).json({ message: "OTP verified !", changePass: true });
+      return;
+    }
+
+    if (reqType === "forgetpass") {
+      res.status(200).json({ message: "OTP verified !", forgotPass: true });
+      return;
+    }
   } catch (error) {
     console.error("Error in verifyOTP controller : ", error);
     res.status(500).json({ message: "Internel server error !" });
@@ -166,7 +243,7 @@ export const logout = async (req: Request, res: Response): Promise<void> => {
 
     res
       .status(200)
-      .json({ message: "Logged out sucessfully", loggedOut: true });
+      .json({ message: "Logged out successfully", loggedOut: true });
     return;
   } catch (error) {
     console.error("Error in logout controller : ", error);
@@ -190,13 +267,15 @@ export const registerRoot = async (
     if (user) {
       res
         .status(409)
-        .json({ message: "Account already registered with one account" });
+        .json({ message: " User already registered ! ", isRoot: true });
       return;
     }
 
     const emailRegex = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{0,3})+$/;
     if (!emailRegex.test(email)) {
-      res.status(400).json({ message: "Enter the valid email" });
+      res
+        .status(400)
+        .json({ message: "Invalid Email addresss ! ", errorEmail: true });
       return;
     }
 

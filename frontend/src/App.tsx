@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import { useAuthStore } from "./store/useAuthStore.ts";
 import { useEffect } from "react";
 import { Toaster } from "react-hot-toast";
@@ -6,15 +6,19 @@ import { Toaster } from "react-hot-toast";
 import HomePage from "./pages/HomePage.tsx";
 import LoginPage from "./pages/LoginPage.tsx";
 import RootSignupPage from "./pages/RootSignupPage.tsx";
+import VerifyEmailPage from "./pages/VerifyEmailPage.tsx";
 
 const App = () => {
   const {
     authUser,
-    checkAuth,
+    verifyEmailPage,
     isRoot,
+
     isCheckingAuth,
     isRegisteringRoot,
     isLoginIn,
+
+    checkAuth,
   } = useAuthStore();
 
   useEffect(() => {
@@ -24,7 +28,10 @@ const App = () => {
   return (
     <>
       <div className="w-full h-full relative ">
+        {/* Notification (react-hot-toast) */}
         <Toaster />
+
+        {/* Loader */}
         {(isCheckingAuth || isRegisteringRoot || isLoginIn) && (
           <div className="w-full h-[100vh] bg-white/40 backdrop-blur-sm fixed">
             <div
@@ -52,6 +59,7 @@ const App = () => {
           </div>
         )}
 
+        {/* Routes */}
         <Routes>
           {/* Home page */}
           <Route
@@ -75,6 +83,12 @@ const App = () => {
           <Route
             path="/login"
             element={authUser ? <Navigate to="/" /> : <LoginPage />}
+          ></Route>
+          <Route
+            path="/verifyemail"
+            element={
+              verifyEmailPage ? <VerifyEmailPage /> : <Navigate to="/" />
+            }
           ></Route>
         </Routes>
       </div>

@@ -92,6 +92,11 @@ export const Signup = () => {
       if (location.pathname === "/signup/root") {
         const result = await registerRoot(formData);
 
+        if (result.errorEmail === true) {
+          setErrorForm({ ...errorForm, email: true });
+          return;
+        }
+
         if (result.success) {
           toast.success(result.message);
           setFormData({
@@ -122,7 +127,12 @@ export const Signup = () => {
         </h1>
         <div className="flex flex-col gap-y-2 text-sm py-6 text-textColor">
           <div className="flex flex-col items-start gap-y-2">
-            <label className="text-primaryColor" htmlFor="Name">
+            <label
+              className={`${
+                errorForm.fullName ? "text-red-600" : "text-textColor"
+              }`}
+              htmlFor="Name"
+            >
               {errorForm.fullName
                 ? "Name should be atleast 2 to 42 characters"
                 : "Full name"}
@@ -131,26 +141,40 @@ export const Signup = () => {
               value={formData.fullName}
               name="fullName"
               onChange={(e) => handleChange(e)}
-              className="w-full  bg-white rounded-md py-2 px-4 outline-none border border-secondaryColor"
+              className={`w-full  bg-white rounded-md py-2 px-4 outline-none border ${
+                errorForm.fullName ? "border-red-600" : "border-secondaryColor"
+              }`}
               type="text"
               placeholder="Full Name"
             />
           </div>
           <div className="flex flex-col items-start gap-y-2">
-            <label className="text-primaryColor" htmlFor="Email">
+            <label
+              className={`${
+                errorForm.email ? "text-red-600" : "text-textColor"
+              }`}
+              htmlFor="Email"
+            >
               {errorForm.email ? "Enter a valid email" : "Email"}
             </label>
             <input
               value={formData.email}
               name="email"
               onChange={(e) => handleChange(e)}
-              className="w-full  bg-white rounded-md py-2 px-4 outline-none border border-secondaryColor"
+              className={`w-full  bg-white rounded-md py-2 px-4 outline-none border ${
+                errorForm.email ? "border-red-600" : "border-secondaryColor"
+              }`}
               type="email"
               placeholder="abc@example.com"
             />
           </div>
           <div className="flex flex-col items-start gap-y-2">
-            <label className="text-primaryColor" htmlFor="Contact Number">
+            <label
+              className={`${
+                errorForm.contactNumber ? "text-red-600" : "text-primaryColor"
+              }`}
+              htmlFor="Contact Number"
+            >
               {errorForm.contactNumber
                 ? "Enter a valid phone"
                 : "Contact number"}
@@ -159,13 +183,22 @@ export const Signup = () => {
               value={formData.contactNumber}
               name="contactNumber"
               onChange={(e) => handleChange(e)}
-              className="w-full  bg-white rounded-md py-2 px-4 outline-none border border-secondaryColor"
+              className={`w-full  bg-white rounded-md py-2 px-4 outline-none border ${
+                errorForm.contactNumber
+                  ? "border-red-600"
+                  : "border-secondaryColor"
+              }`}
               type="tel"
               placeholder="+00 000-00000000"
             />
           </div>
           <div className="flex flex-col items-start gap-y-2">
-            <label className="text-primaryColor" htmlFor="Password">
+            <label
+              className={`${
+                errorForm.password ? "text-red-600" : "text-textColor"
+              }`}
+              htmlFor="Password"
+            >
               {errorForm.password
                 ? "Password should be atleast 8 characters"
                 : "Password"}
@@ -174,13 +207,20 @@ export const Signup = () => {
               value={formData.password}
               name="password"
               onChange={(e) => handleChange(e)}
-              className="w-full  bg-white rounded-md py-2 px-4 outline-none border border-secondaryColor"
+              className={`w-full  bg-white rounded-md py-2 px-4 outline-none border ${
+                errorForm.password ? "border-red-600" : "border-secondaryColor"
+              }`}
               type="password"
               placeholder="Password"
             />
           </div>
           <div className="flex flex-col items-start gap-y-2">
-            <label className="text-primaryColor" htmlFor="Confirm Password">
+            <label
+              className={`${
+                errorForm.confirmPassword ? "text-red-600" : "text-textColor"
+              }`}
+              htmlFor="Confirm Password"
+            >
               {errorForm.confirmPassword
                 ? "Password does not match"
                 : "Confirm password"}
@@ -189,7 +229,11 @@ export const Signup = () => {
               value={formData.confirmPassword}
               name="confirmPassword"
               onChange={(e) => handleChange(e)}
-              className="w-full  bg-white rounded-md py-2 px-4 outline-none border border-secondaryColor"
+              className={`w-full  bg-white rounded-md py-2 px-4 outline-none border ${
+                errorForm.confirmPassword
+                  ? "border-red-600"
+                  : "border-secondaryColor"
+              }`}
               type="password"
               placeholder="Repeat Password"
             />

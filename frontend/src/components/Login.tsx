@@ -58,6 +58,9 @@ export const Login = () => {
         navigate("/");
       } else {
         toast.error(result.message);
+        if (result.verifyEmail === true) {
+          navigate("/verifyemail");
+        }
       }
     }
   };
@@ -76,27 +79,43 @@ export const Login = () => {
           <h1 className="text-2xl text-textColor font-bold">Login</h1>
           <div className="flex flex-col gap-y-2 text-sm py-6 text-textColor">
             <div className="flex flex-col items-start gap-y-2">
-              <label className="text-primaryColor" htmlFor="Email">
+              <label
+                className={`${
+                  errorForm.email ? "text-red-600" : "text-textColor"
+                }`}
+                htmlFor="Email"
+              >
                 {errorForm.email ? "Enter a valid Email" : "Email"}
               </label>
               <input
                 value={formData.email}
                 name="email"
                 onChange={(e) => handleChange(e)}
-                className="w-full  bg-white rounded-md py-2 px-4 outline-none border border-secondaryColor"
+                className={`w-full  bg-white rounded-md py-2 px-4 outline-none border ${
+                  errorForm.email ? "border-red-600" : "border-secondaryColor"
+                }`}
                 type="email"
                 placeholder="abc@example.com"
               />
             </div>
             <div className="flex flex-col items-start gap-y-2">
-              <label className="text-primaryColor" htmlFor="Password">
+              <label
+                className={`${
+                  errorForm.password ? "text-red-600" : "text-textColor"
+                }`}
+                htmlFor="Password"
+              >
                 {errorForm.password ? "Enter a valid Password" : "Password"}
               </label>
               <input
                 value={formData.password}
                 name="password"
                 onChange={(e) => handleChange(e)}
-                className="w-full  bg-white rounded-md py-2 px-4 outline-none border border-secondaryColor"
+                className={`w-full  bg-white rounded-md py-2 px-4 outline-none border ${
+                  errorForm.password
+                    ? "border-red-600"
+                    : "border-secondaryColor"
+                }`}
                 type="password"
                 placeholder="Password"
               />

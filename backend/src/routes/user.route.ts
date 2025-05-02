@@ -7,6 +7,7 @@ import {
   logout,
   registerRoot,
   reqOTP,
+  verifyOTP,
 } from "../controllers/auth.controller.js";
 
 import {
@@ -24,9 +25,11 @@ router.get("/checkRoot", checkRoot);
 router.post("/signup/root", protectRegisterRoot, registerRoot);
 // User login
 router.post("/login", login);
-// Logout
+// User Logout
 router.get("/logout", protectRoute, logout);
-// verify email request
-router.post("/verifyEmail", protectRoute, reqOTP);
+// Request OTP
+router.post("/reqOTP", reqOTP);
+// Verifies OTP
+router.post("/verifyOTP", verifyOTP);
 
 export default router;

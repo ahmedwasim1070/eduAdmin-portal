@@ -8,14 +8,15 @@ export interface IUser extends Document {
   emailStatus: "verified" | "not-verified";
   contactNumber: string;
   password: string;
-  otp: string;
+  otp?: string;
+  otpCreatedAt: number;
   role: "root" | "principle" | "admin" | "student";
   collegeName: string;
   permissions: string[];
   documentStatus: "approved" | "rejected" | "pending";
   status: "active" | "deleted" | "suspended";
   loginAttempt: number;
-  lastLogin?: Date;
+  lastLogin?: number;
   createdBy?: mongoose.Types.ObjectId;
   createdAt?: Date;
   updatedAt?: Date;
@@ -63,6 +64,10 @@ const userSchema: Schema<IUser> = new Schema(
       type: String,
       required: false,
     },
+    otpCreatedAt: {
+      type: Number,
+      required: false,
+    },
     role: {
       type: String,
       required: true,
@@ -106,7 +111,8 @@ const userSchema: Schema<IUser> = new Schema(
       max: 5,
     },
     lastLogin: {
-      type: Date,
+      type: Number,
+      required: false,
     },
     createdBy: {
       type: mongoose.Schema.Types.ObjectId || "self-created",

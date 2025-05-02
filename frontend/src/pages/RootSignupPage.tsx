@@ -6,7 +6,7 @@ function RootSignupPage() {
   const { checkRoot } = useAuthStore();
 
   useEffect(() => {
-    checkRoot();
+     checkRoot();
   }, [checkRoot]);
   return (
     <>

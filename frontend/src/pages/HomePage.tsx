@@ -26,7 +26,7 @@ function HomePage() {
             <div className="flex items-center">
               <h1 className="text-2xl font-bold text-textColor">Dashboard</h1>
               <div className="ml-4 px-3 py-1 bg-secondaryColor text-textColor rounded-full text-sm font-medium">
-                {authUser.user.role || "User"}
+                {authUser.role || "User"}
               </div>
             </div>
             <div className="flex items-center space-x-4">
@@ -53,30 +53,30 @@ function HomePage() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               <div>
                 <p className="text-sm text-primaryColor">Full Name</p>
-                <p className="font-medium">{authUser.user.fullName || "N/A"}</p>
+                <p className="font-medium">{authUser.fullName || "N/A"}</p>
               </div>
               <div>
                 <p className="text-sm text-primaryColor">Email</p>
-                <p className="font-medium">{authUser.user.email || "N/A"}</p>
+                <p className="font-medium">{authUser.email || "N/A"}</p>
               </div>
               <div>
                 <p className="text-sm text-primaryColor">Contact</p>
                 <p className="font-medium">
-                  {authUser.user.contactNumber || "N/A"}
+                  {authUser.contactNumber || "N/A"}
                 </p>
               </div>
               <div>
                 <p className="text-sm text-primaryColor">Status</p>
-                <p className="font-medium">{authUser.user.status || "N/A"}</p>
+                <p className="font-medium">{authUser.status || "N/A"}</p>
               </div>
               <div>
                 <p className="text-sm text-primaryColor">Role</p>
-                <p className="font-medium">{authUser.user.role || "N/A"}</p>
+                <p className="font-medium">{authUser.role || "N/A"}</p>
               </div>
             </div>
           </div>
 
-          {authUser.user.role === "root" && (
+          {authUser.role === "root" && (
             <div className="mb-8 bg-white rounded-lg shadow p-6 flex justify-between items-center">
               <h2 className="text-textColor text-lg font-medium">Root User</h2>
               <div className="flex justify-center items-center gap-x-4">
@@ -92,7 +92,7 @@ function HomePage() {
             </div>
           )}
 
-          {authUser.user.role === "root" && (
+          {authUser.role === "root" && (
             <div className="mb-8 bg-white rounded-lg shadow p-6 flex justify-between items-center">
               <h2 className="text-textColor text-lg font-medium">Colleges</h2>
               <div className="flex justify-center items-center gap-x-4">
