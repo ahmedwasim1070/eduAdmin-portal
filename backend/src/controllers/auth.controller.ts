@@ -4,13 +4,13 @@ import userModel, { IUser } from "../models/user.model.js";
 
 import { createToken } from "../lib/util.js";
 
-import { CustomRequest } from "../middlewares/auth.middleware.js";
+import { protectRouteResponse } from "../middlewares/auth.middleware.js";
 
 import { mailOTP } from "./mailer.controller.js";
 
 // Check's Auth
 export const checkAuth = async (req: Request, res: Response): Promise<void> => {
-  const user = (req as CustomRequest).user;
+  const user = (req as protectRouteResponse).user;
   try {
     user.lastLogin = Date.now();
     await user.save();
@@ -18,7 +18,7 @@ export const checkAuth = async (req: Request, res: Response): Promise<void> => {
     console.log(`${user.email} just logged in ! `);
     res.status(200).json({
       message: "Token verified - Logging In",
-      user: (req as CustomRequest).user,
+      user
     });
     return;
   } catch (error) {
@@ -283,7 +283,7 @@ export const changePassword = async (
     }
   }
 
-  const user = (req as CustomRequest).user;
+  const user = (req as protectRouteResponse).user;
   try {
     if (reqType === "changepassword") {
       const isValid = user.comparePassword(oldPassword);
@@ -324,6 +324,12 @@ export const registerRoot = async (
   }
 
   try {
+    const rootUsers = await userModel.find({ role: "root" });
+    if (rootUsers && rootUsers.length < 5) {
+      res.status(400).json({ message: "Root users limit reached ! " });
+      return;
+    }
+
     const user = await userModel.findOne({ email });
     if (user) {
       res

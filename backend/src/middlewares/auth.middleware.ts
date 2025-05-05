@@ -2,7 +2,7 @@ import { NextFunction, Request, Response } from "express";
 import userModel from "../models/user.model.js";
 import JWT, { JwtPayload } from "jsonwebtoken";
 
-export interface CustomRequest extends Request {
+export interface protectRouteResponse extends Request {
   user: any;
 }
 
@@ -36,11 +36,33 @@ export const protectRoute = async (
       return;
     }
 
-    (req as CustomRequest).user = user;
+    (req as protectRouteResponse).user = user;
     next();
   } catch (error) {
     console.log("Error in checkAuth middleware ", error);
     res.status(500).json({ message: "Internal server error!" });
+    return;
+  }
+};
+
+// Verifies if it is Root user or not
+export const validateRoot = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  const user = (req as protectRouteResponse).user;
+
+  try {
+    if (user.role !== "root") {
+      res.status(401).json({ message: "Unauthorized !" });
+      return;
+    }
+
+    next();
+  } catch (error) {
+    console.log("Error in validateRoot middleware ! :", error);
+    res.status(500).json({ message: "Internel server error !" });
     return;
   }
 };
