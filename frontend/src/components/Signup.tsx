@@ -120,7 +120,7 @@ export const Signup = () => {
   }, [errorForm]);
 
   return (
-    <div className="2xl:w-[25%] md:w-[40%] border border-primaryColor rounded-lg bg-white shadow-2xl">
+    <div className="2xl:w-[25%] md:w-[40%] border border-black/20 rounded-lg bg-white shadow-2xl">
       <form onSubmit={(e) => handleSubmit(e)} className="px-4 py-4 text-center">
         <h1 className="text-2xl text-textColor font-medium">
           {componentHeading}

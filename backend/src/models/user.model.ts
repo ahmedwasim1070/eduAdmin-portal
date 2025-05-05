@@ -129,8 +129,15 @@ userSchema.methods.comparePassword = function (
   return bcrypt.compare(userPassword, this.password);
 };
 
-userSchema.methods.compareOTP = function (userOTP: string): Promise<boolean> {
-  return bcrypt.compare(userOTP, this.otp);
+userSchema.methods.compareOTP = async function (
+  this: IUser,
+  userOTP: string
+): Promise<boolean> {
+  if (this.otp && !(Date.now() - this.otpCreatedAt > 5 * 60 * 1000)) {
+    return bcrypt.compare(userOTP, this.otp);
+  }
+
+  return false;
 };
 
 userSchema.methods.canCreateUser = function (
@@ -147,6 +154,14 @@ userSchema.methods.canCreateUser = function (
   return creationRules[this.role]?.includes(targetRole) || false;
 };
 
+userSchema.methods.updatePassword = function (
+  this: IUser,
+  newPassword: string
+): void {
+  this.password === newPassword;
+  return;
+};
+
 userSchema.methods.incrementLoginAttempt = function (): void {
   this.loginAttempt += 1;
   return;
@@ -157,13 +172,13 @@ userSchema.methods.resetLoginAttempt = function (): void {
   return;
 };
 
-userSchema.pre<IUser>("save", async function (next) {
+userSchema.pre<IUser>("save", async function (this: IUser, next) {
   try {
     if (this.isModified("password")) {
       this.password = await bcrypt.hash(this.password, 10);
     }
 
-    if (this.isModified("otp")) {
+    if (this.otp && this.isModified("otp")) {
       this.otp = await bcrypt.hash(this.otp, 10);
     }
 

@@ -71,9 +71,11 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     }
 
     if (user.loginAttempt >= 5) {
+      user.emailStatus === "not-verified";
+      await user.save();
       res.status(423).json({
         message:
-          "Account blocked due to too many login attempts. Use OTP login.",
+          "Account blocked due to too many login attempts. Verify Email.",
         loginOTP: true,
       });
       return;
@@ -112,9 +114,14 @@ export const login = async (req: Request, res: Response): Promise<void> => {
 
 // Requests OTP
 export const reqOTP = async (req: Request, res: Response): Promise<void> => {
-  const { email } = req.body;
+  const { email, reqType } = req.body;
   if (!email) {
     res.status(400).json({ message: "All fields are required !" });
+    return;
+  }
+
+  if (!reqType || !["verifyemail", "forgetpassword"].includes(reqType)) {
+    res.status(400).json({ message: "Invalid Request !" });
     return;
   }
   try {
@@ -124,7 +131,7 @@ export const reqOTP = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    if (user.loginAttempt === 0) {
+    if (reqType === "verifyemail") {
       if (user.emailStatus !== "not-verified") {
         res.status(400).json({ message: "Invalid Request !" });
         return;
@@ -137,7 +144,7 @@ export const reqOTP = async (req: Request, res: Response): Promise<void> => {
       !(Date.now() - user.otpCreatedAt > 5 * 60 * 1000)
     ) {
       res.status(429).json({
-        message: "OTP cooldown. Please wait before requesting again !",
+        message: "OTP cooldown. Try again after 5 minutes !",
         coolDown: true,
       });
       return;
@@ -165,10 +172,7 @@ export const verifyOTP = async (req: Request, res: Response): Promise<void> => {
     return;
   }
 
-  if (
-    !reqType ||
-    !["verifyemail", "changepass", "otplogin", "forgetpass"].includes(reqType)
-  ) {
+  if (!reqType || !["verifyemail", "forgetpassword"].includes(reqType)) {
     res.status(400).json({ message: "Invalid Request !" });
     return;
   }
@@ -190,39 +194,27 @@ export const verifyOTP = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    // Expiry validation of OTP
-    if (Date.now() - user.otpCreatedAt > 5 * 60 * 1000) {
-      user.otp = "";
-      res.status(400).json({ message: "OTP Expired !" });
-      return;
-    }
-
     user.otp = "";
 
-    if (
-      user.emailStatus !== "verified" &&
-      ["verifyemail", "otplogin"].includes(reqType)
-    ) {
-      user.emailStatus = "verified";
+    createToken(res, user._id);
 
-      createToken(res, user._id);
+    user.resetLoginAttempt();
 
-      user.resetLoginAttempt();
+    user.emailStatus = "verified";
 
-      await user.save();
+    await user.save();
 
+    if (user.emailStatus !== "verified" && reqType === "verifyemail") {
       console.log(`${email} just logged in !`);
       res.status(200).json({ message: "OTP verified !", login: true });
       return;
     }
 
-    if (reqType === "changepass") {
-      res.status(200).json({ message: "OTP verified !", changePass: true });
-      return;
-    }
-
-    if (reqType === "forgetpass") {
-      res.status(200).json({ message: "OTP verified !", forgotPass: true });
+    if (reqType === "forgetpassword") {
+      res.status(200).json({
+        message: "OTP verified !.Set up new password",
+        forgetPassword: true,
+      });
       return;
     }
   } catch (error) {
@@ -247,6 +239,75 @@ export const logout = async (req: Request, res: Response): Promise<void> => {
     return;
   } catch (error) {
     console.error("Error in logout controller : ", error);
+    res.status(500).json({ message: "Internel server error !" });
+  }
+};
+
+// Change Password
+export const changePassword = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  const { reqType, otp, oldPassword, password, confirmPassword } = req.body;
+
+  if (!["forgetpassword", "verifypassword"].includes(reqType)) {
+    res.status(400).json({ message: "Invalid request !" });
+    return;
+  }
+
+  if (!password || !confirmPassword) {
+    res
+      .status(400)
+      .json({ message: "Password and confirm password is required" });
+    return;
+  }
+
+  if (password !== confirmPassword) {
+    res
+      .status(400)
+      .json({ message: "Password and confirm password should match !" });
+    return;
+  }
+
+  if (reqType === "changepassword") {
+    if (!oldPassword) {
+      res.status(400).json({ message: "Your old password is required !" });
+      return;
+    }
+  }
+
+  if (reqType === "forgetpassword") {
+    if (!otp) {
+      res.status(400).json({ message: "OTP is required !" });
+      return;
+    }
+  }
+
+  const user = (req as CustomRequest).user;
+  try {
+    if (reqType === "changepassword") {
+      const isValid = user.comparePassword(oldPassword);
+      if (!isValid) {
+        res.status(400).json({ message: "Old Password Incorrect" });
+        return;
+      }
+    }
+
+    if (reqType === "forgetpassword") {
+      const isValid = user.compareOTP(otp);
+      if (!isValid) {
+        res.status(400).json({ message: "Incorrect OTP!" });
+        return;
+      }
+    }
+
+    user.updatePassword(password);
+    await user.save();
+
+    res.status(200).json({ message: "Password changed successfully" });
+    return;
+  } catch (error) {
+    console.error("Error in changePassword controller : ", error);
     res.status(500).json({ message: "Internel server error !" });
   }
 };

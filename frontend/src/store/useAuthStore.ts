@@ -4,14 +4,11 @@ import { axiosInstance } from "../lib/axios";
 interface AuthState {
   authUser: any | null;
   verifyEmailPage: boolean;
-  loginOTPpage: boolean;
   isRoot: boolean;
 
-  isCheckingAuth: boolean;
-  isRegisteringRoot: boolean;
-  isLoginIn: boolean;
-  isReqOTP: boolean;
+  isLoading: boolean;
 
+  // Asynchronize Functions
   checkAuth: () => Promise<void>;
   checkRoot: () => Promise<void>;
   registerRoot: (formData: any) => Promise<{
@@ -22,7 +19,6 @@ interface AuthState {
   }>;
   login: (formData: any) => Promise<{
     success: boolean;
-    loginOTP?: boolean;
     verifyEmail?: boolean;
     message: string;
     status: number;
@@ -32,26 +28,31 @@ interface AuthState {
     message: string;
     status: number;
   }>;
-  reqOTP: (formData: any) => Promise<{
+  reqOtp: (formData: any) => Promise<{
     success: boolean;
     message: string;
     status: number;
   }>;
-  resetUserCache: () => void;
+  verifyOtp: (formData: any) => Promise<{
+    success: boolean;
+    message: string;
+    status: number;
+  }>;
+  changePassword: (formData: any) => Promise<{
+    success: boolean;
+    message: string;
+    status: number;
+  }>;
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
   // use full variable
   authUser: null,
   verifyEmailPage: false,
-  loginOTPpage: false,
   isRoot: false,
 
   // Loading variable
-  isCheckingAuth: true,
-  isRegisteringRoot: false,
-  isLoginIn: false,
-  isReqOTP: false,
+  isLoading: true,
 
   // Cookie validator
   checkAuth: async () => {
@@ -66,13 +67,13 @@ export const useAuthStore = create<AuthState>((set) => ({
       console.log("Error in checkAuth", error);
       set({ authUser: null });
     } finally {
-      set({ isCheckingAuth: false });
+      set({ isLoading: false });
     }
   },
 
   // Root checker
   checkRoot: async () => {
-    set({ isRegisteringRoot: true });
+    set({ isLoading: true });
     try {
       const res = await axiosInstance.get("auth/checkRoot", {
         validateStatus: (status) => status < 500,
@@ -87,13 +88,13 @@ export const useAuthStore = create<AuthState>((set) => ({
       console.log("Error in checkRoot", error);
       set({ isRoot: false });
     } finally {
-      set({ isRegisteringRoot: false });
+      set({ isLoading: false });
     }
   },
 
   // Registers Root
   registerRoot: async (formData) => {
-    set({ isRegisteringRoot: true });
+    set({ isLoading: true });
     try {
       const res = await axiosInstance.post("auth/signup/root", formData, {
         headers: {
@@ -102,7 +103,7 @@ export const useAuthStore = create<AuthState>((set) => ({
         validateStatus: (status) => status < 500,
       });
 
-      if (res.data.isRoot && res.data.isRoot === true) {
+      if (res.data.isRoot) {
         set({ isRoot: true });
       }
       return {
@@ -120,13 +121,13 @@ export const useAuthStore = create<AuthState>((set) => ({
         status: 0,
       };
     } finally {
-      set({ isRegisteringRoot: false });
+      set({ isLoading: false });
     }
   },
 
   // Create auth cookie
   login: async (formData) => {
-    set({ isLoginIn: true });
+    set({ isLoading: true });
     try {
       const res = await axiosInstance.post("auth/login", formData, {
         withCredentials: true,
@@ -136,47 +137,43 @@ export const useAuthStore = create<AuthState>((set) => ({
         validateStatus: (status) => status < 500,
       });
 
-      // Opens verify email page
-      if (res.data.verifyEmail && res.data.verifyEmail === true) {
-        set({ verifyEmailPage: true });
-      }
-
-      // Open loginOTP page
-      if (res.data.loginOTP && res.data.loginOTP === true) {
-        set({ loginOTPpage: true });
+      if (res.data.verifyEmail) {
+        set({ verifyEmailPage: res.data.verifyEmailPage });
       }
 
       return {
         success: res.status === 200,
-        loginOTP: res.data.loginOTP,
         verifyEmail: res.data.verifyEmail,
         message: res.data.message,
         status: res.status,
       };
     } catch (error) {
       console.error("Error in login fetch :", error);
-      set({ verifyEmailPage: false, loginOTPpage: false });
       return {
         success: false,
         message: "Connection Error !",
         status: 0,
       };
     } finally {
-      set({ isLoginIn: false });
+      set({ isLoading: false });
     }
   },
 
   // Clear auth cookies (logout)
   logout: async () => {
     try {
+      set({ isLoading: true });
       const res = await axiosInstance.get("auth/logout", {
         withCredentials: true,
         validateStatus: (status) => status < 500,
       });
 
+      if (res.status === 200) {
+        set({ authUser: "" });
+      }
+
       return {
         success: res.status === 200,
-        loginOTP: res.data.loginOTP,
         message: res.data.message,
         status: res.status,
       };
@@ -187,13 +184,14 @@ export const useAuthStore = create<AuthState>((set) => ({
         message: "Connection Error !",
         status: 0,
       };
+    } finally {
+      set({ isLoading: false });
     }
   },
 
-  reqOTP: async (formData) => {
-    set({ isReqOTP: true });
+  reqOtp: async (formData) => {
     try {
-      const res = await axiosInstance.post("auth/reqOTP", formData, {
+      const res = await axiosInstance.post("auth/req/otp", formData, {
         withCredentials: true,
         headers: {
           "Content-Type": "application/json",
@@ -213,13 +211,64 @@ export const useAuthStore = create<AuthState>((set) => ({
         message: "Connection error",
         status: 0,
       };
-    } finally {
-      set({ isReqOTP: false });
     }
   },
 
-  // clear user info
-  resetUserCache: () => {
-    set({ authUser: null });
+  verifyOtp: async (formData) => {
+    try {
+      set({ isLoading: true });
+      const res = await axiosInstance.post("auth/verify/otp", formData, {
+        withCredentials: true,
+        headers: {
+          "Content-Type": "application/json",
+        },
+        validateStatus: (status) => status < 500,
+      });
+
+      // If Request is for forget password then redirect to that page
+
+      return {
+        success: res.status === 200,
+        message: res.data.message,
+        status: res.status,
+      };
+    } catch (error) {
+      console.error("Error in verifyOTP fetch :", error);
+      return {
+        success: false,
+        message: "Connection error",
+        status: 0,
+      };
+    } finally {
+      set({ isLoading: false });
+    }
+  },
+
+  changePassword: async (formData) => {
+    try {
+      set({ isLoading: true });
+      const res = await axiosInstance.post("/auth/change/password", formData, {
+        withCredentials: true,
+        headers: {
+          "Content-Type": "application/json",
+        },
+        validateStatus: (status) => status < 500,
+      });
+
+      return {
+        success: res.status === 200,
+        message: res.data.message,
+        status: res.status,
+      };
+    } catch (error) {
+      console.error("Error in changePassword fetch :", error);
+      return {
+        success: false,
+        message: "Connection error",
+        status: 0,
+      };
+    } finally {
+      set({ isLoading: false });
+    }
   },
 }));

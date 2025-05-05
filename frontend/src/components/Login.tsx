@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { useAuthStore } from "../store/useAuthStore.ts";
-import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
+import toast from "react-hot-toast";
 
 export const Login = () => {
   const navigate = useNavigate();
@@ -71,13 +72,13 @@ export const Login = () => {
   }, [errorForm]);
   return (
     <>
-      <div className="2xl:w-[25%] md:w-[40%]  border border-primaryColor rounded-lg bg-white shadow-2xl">
+      <div className="2xl:w-[25%] md:w-[40%] border border-black/20 rounded-lg bg-white shadow-2xl">
         <form
           onSubmit={(e) => handleSubmit(e)}
           className="px-4 py-4 text-center"
         >
           <h1 className="text-2xl text-textColor font-bold">Login</h1>
-          <div className="flex flex-col gap-y-2 text-sm py-6 text-textColor">
+          <div className="flex flex-col gap-y-2 text-sm py-4 text-textColor">
             <div className="flex flex-col items-start gap-y-2">
               <label
                 className={`${
@@ -119,6 +120,12 @@ export const Login = () => {
                 type="password"
                 placeholder="Password"
               />
+              <Link
+                className="text-textColor underline hover:text-secondaryColor"
+                to="/forgetpassword"
+              >
+                Forget Password ?
+              </Link>
             </div>
           </div>
           <div className="flex flex-col items-start gap-y-2">

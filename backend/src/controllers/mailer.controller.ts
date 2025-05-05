@@ -4,7 +4,7 @@ import { transporter } from "../lib/util.js";
 export const mailOTP = async (email: string): Promise<string> => {
   const otp = generateSecurePin();
 
-  const verifyEmail = `
+  const otpTemplate = `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; background: #f4f4f4; border-radius: 8px;">
       <div style="background: #ffffff; padding: 30px; border-radius: 8px; text-align: center;">
         <h2 style="color: #333;">You requested OTP from eduAdmin.portal.app</h2>
@@ -30,7 +30,7 @@ export const mailOTP = async (email: string): Promise<string> => {
     from: `"Support | EduAdmin Portal" <${process.env.SMTP_MAIL}>`,
     to: email,
     subject: "Requested OTP from eduAdmin portal",
-    html: verifyEmail,
+    html: otpTemplate,
   });
 
   return otp;
