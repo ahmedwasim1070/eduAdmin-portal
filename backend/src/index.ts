@@ -5,7 +5,8 @@ import cors from "cors";
 
 import { connectDB } from "./lib/db.js";
 
-import userRoutes from "./routes/user.route.js";
+import userRoutes from "./routes/auth.route.js";
+import quiryRoute from "./routes/quiry.route.js";
 
 dotenv.config();
 
@@ -21,6 +22,7 @@ app.use(
 );
 
 app.use("/api/auth", userRoutes);
+app.use("/api/quiry", quiryRoute);
 
 const PORT = process.env.PORT;
 app.listen(PORT, () => {

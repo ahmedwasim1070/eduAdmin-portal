@@ -1,53 +1,78 @@
 import { useState, useEffect } from "react";
-import { useAuthStore } from "../store/useAuthStore.ts";
+import { useAuthStore } from "../../store/useAuthStore.ts";
 import { useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
 import toast from "react-hot-toast";
 
+type FormData = {
+  email: string;
+  password: string;
+};
+
+type ErrorForm = {
+  email: boolean;
+  password: boolean;
+};
+
 export const Login = () => {
   const navigate = useNavigate();
   const { login, checkAuth } = useAuthStore();
-  const [formData, setFormData] = useState({
+
+  // Form state initialization
+  const [formData, setFormData] = useState<FormData>({
     email: "",
     password: "",
   });
 
-  const [disableSubmit, setDisableSubmit] = useState(true);
-
-  const [errorForm, setErrorForm] = useState({
+  // Validation error state - all fields have errors by default
+  const [errorForm, setErrorForm] = useState<ErrorForm>({
     email: true,
     password: true,
   });
 
+  /**
+   * Validation regex patterns
+   */
+  const validationPatterns = {
+    email: /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/,
+  };
+
+  /**
+   * Validation error messages
+   */
+  const errorMessages = {
+    email: "Enter a valid email",
+    password: "Password should be at least 8 characters",
+  };
+
+  // Submit button state - disabled by default until validation passes
+  const [disableSubmit, setDisableSubmit] = useState(true);
+
+  // Handle Form Input
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const targetName = e.target.name;
-    const targetValue = e.target.value;
+    const { name, value } = e.target;
+    let isValid = false;
 
-    if (targetName === "email") {
-      const emailRegex = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{0,3})+$/;
-      if (!emailRegex.test(targetValue)) {
-        setErrorForm({ ...errorForm, [targetName]: true });
-        setDisableSubmit(true);
-      } else {
-        setErrorForm({ ...errorForm, [targetName]: false });
-      }
+    switch (name) {
+      case "email":
+        isValid = !validationPatterns.email.test(value);
+        break;
+      case "password":
+        isValid = value.length < 8;
+        break;
+      default:
+        break;
     }
 
-    if (targetName === "password") {
-      if (targetValue.length <= 8) {
-        setErrorForm({ ...errorForm, [targetName]: true });
-        setDisableSubmit(true);
-      } else {
-        setErrorForm({ ...errorForm, [targetName]: false });
-      }
-    }
-    setFormData({ ...formData, [targetName]: targetValue });
+    setErrorForm({ ...errorForm, [name]: isValid });
+
+    setFormData({ ...formData, [name]: value });
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    if (disableSubmit != true) {
+    if (!disableSubmit) {
       const result = await login(formData);
       if (result.success) {
         toast.success(result.message);
@@ -64,12 +89,16 @@ export const Login = () => {
         }
       }
     }
+    //
   };
 
+  // Enables Submit button if there is no error in errorForm
   useEffect(() => {
     const allValid = Object.values(errorForm).every((val) => val === false);
     setDisableSubmit(!allValid);
   }, [errorForm]);
+
+  //
   return (
     <>
       <div className="2xl:w-[25%] md:w-[40%] border border-black/20 rounded-lg bg-white shadow-2xl">
@@ -77,49 +106,31 @@ export const Login = () => {
           onSubmit={(e) => handleSubmit(e)}
           className="px-4 py-4 text-center"
         >
-          <h1 className="text-2xl text-textColor font-bold">Login</h1>
-          <div className="flex flex-col gap-y-2 text-sm py-4 text-textColor">
-            <div className="flex flex-col items-start gap-y-2">
+          <h1 className="text-3xl text-textColor font-bold">Login</h1>
+          <div className="flex flex-col justify-start items-start text-sm py-5 text-textColor">
+            <div className="w-full font-medium text-left flex flex-col gap-y-2 text-sm py-2 text-textColor">
               <label
-                className={`${
+                className={` ${
                   errorForm.email ? "text-red-600" : "text-textColor"
                 }`}
-                htmlFor="Email"
+                htmlFor="email"
               >
-                {errorForm.email ? "Enter a valid Email" : "Email"}
+                {errorForm.email ? errorMessages.email : "Email"}
               </label>
               <input
-                value={formData.email}
+                id="email"
                 name="email"
-                onChange={(e) => handleChange(e)}
+                value={formData.email}
+                type="email"
+                placeholder="Email"
                 className={`w-full  bg-white rounded-md py-2 px-4 outline-none border ${
                   errorForm.email ? "border-red-600" : "border-secondaryColor"
                 }`}
-                type="email"
-                placeholder="abc@example.com"
+                onChange={handleChange}
               />
             </div>
-            <div className="flex flex-col items-start gap-y-2">
-              <label
-                className={`${
-                  errorForm.password ? "text-red-600" : "text-textColor"
-                }`}
-                htmlFor="Password"
-              >
-                {errorForm.password ? "Enter a valid Password" : "Password"}
-              </label>
-              <input
-                value={formData.password}
-                name="password"
-                onChange={(e) => handleChange(e)}
-                className={`w-full  bg-white rounded-md py-2 px-4 outline-none border ${
-                  errorForm.password
-                    ? "border-red-600"
-                    : "border-secondaryColor"
-                }`}
-                type="password"
-                placeholder="Password"
-              />
+
+            <div className="py-1">
               <Link
                 className="text-textColor underline hover:text-secondaryColor"
                 to="/forgetpassword"

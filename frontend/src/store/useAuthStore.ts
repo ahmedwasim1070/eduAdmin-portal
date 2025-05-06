@@ -13,7 +13,12 @@ interface AuthState {
   checkRoot: () => Promise<void>;
   registerRoot: (formData: any) => Promise<{
     success: boolean;
-    errorEmail: boolean;
+    message: string;
+    status: number;
+  }>;
+  signup: (formData: any) => Promise<{
+    success: boolean;
+    errorEmail?: boolean;
     message: string;
     status: number;
   }>;
@@ -57,10 +62,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   // Cookie validator
   checkAuth: async () => {
     try {
-      const res = await axiosInstance.get("auth/check", {
-        withCredentials: true,
-        validateStatus: (status) => status < 500,
-      });
+      const res = await axiosInstance.get("auth/check");
 
       set({ authUser: res.data.user });
     } catch (error) {
@@ -75,9 +77,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   checkRoot: async () => {
     set({ isLoading: true });
     try {
-      const res = await axiosInstance.get("auth/checkRoot", {
-        validateStatus: (status) => status < 500,
-      });
+      const res = await axiosInstance.get("auth/checkRoot");
 
       if (res.data.exsists) {
         set({ isRoot: res.data.exsists });
@@ -96,19 +96,13 @@ export const useAuthStore = create<AuthState>((set) => ({
   registerRoot: async (formData) => {
     set({ isLoading: true });
     try {
-      const res = await axiosInstance.post("auth/signup/root", formData, {
-        headers: {
-          "Content-Type": "application/json",
-        },
-        validateStatus: (status) => status < 500,
-      });
+      const res = await axiosInstance.post("auth/signup/root", formData);
 
       if (res.data.isRoot) {
         set({ isRoot: true });
       }
       return {
         success: res.status === 200,
-        errorEmail: res.data.error,
         message: res.data.message,
         status: res.status,
       };
@@ -116,8 +110,31 @@ export const useAuthStore = create<AuthState>((set) => ({
       console.error("Error in registerRoot fetch : ", error);
       return {
         success: false,
-        errorEmail: false,
         message: "Connection error",
+        status: 0,
+      };
+    } finally {
+      set({ isLoading: false });
+    }
+  },
+
+  // Registers User
+  signup: async (formData) => {
+    set({ isLoading: true });
+    try {
+      const res = await axiosInstance.post("auth/signup/user", formData);
+
+      return {
+        success: res.status === 200,
+        errorEmail: res.data.verifyEmail,
+        message: res.data.message,
+        status: res.status,
+      };
+    } catch (error) {
+      console.error("Error in login fetch :", error);
+      return {
+        success: false,
+        message: "Connection Error !",
         status: 0,
       };
     } finally {
@@ -129,16 +146,10 @@ export const useAuthStore = create<AuthState>((set) => ({
   login: async (formData) => {
     set({ isLoading: true });
     try {
-      const res = await axiosInstance.post("auth/login", formData, {
-        withCredentials: true,
-        headers: {
-          "Content-Type": "application/json",
-        },
-        validateStatus: (status) => status < 500,
-      });
+      const res = await axiosInstance.post("auth/login", formData);
 
       if (res.data.verifyEmail) {
-        set({ verifyEmailPage: res.data.verifyEmailPage });
+        set({ verifyEmailPage: res.data.verifyEmail });
       }
 
       return {
@@ -163,10 +174,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   logout: async () => {
     try {
       set({ isLoading: true });
-      const res = await axiosInstance.get("auth/logout", {
-        withCredentials: true,
-        validateStatus: (status) => status < 500,
-      });
+      const res = await axiosInstance.get("auth/logout");
 
       if (res.status === 200) {
         set({ authUser: "" });
@@ -191,13 +199,7 @@ export const useAuthStore = create<AuthState>((set) => ({
 
   reqOtp: async (formData) => {
     try {
-      const res = await axiosInstance.post("auth/req/otp", formData, {
-        withCredentials: true,
-        headers: {
-          "Content-Type": "application/json",
-        },
-        validateStatus: (status) => status < 500,
-      });
+      const res = await axiosInstance.post("auth/req/otp", formData);
 
       return {
         success: res.status === 200,
@@ -217,15 +219,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   verifyOtp: async (formData) => {
     try {
       set({ isLoading: true });
-      const res = await axiosInstance.post("auth/verify/otp", formData, {
-        withCredentials: true,
-        headers: {
-          "Content-Type": "application/json",
-        },
-        validateStatus: (status) => status < 500,
-      });
-
-      // If Request is for forget password then redirect to that page
+      const res = await axiosInstance.post("auth/verify/otp", formData);
 
       return {
         success: res.status === 200,
@@ -247,13 +241,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   changePassword: async (formData) => {
     try {
       set({ isLoading: true });
-      const res = await axiosInstance.post("/auth/change/password", formData, {
-        withCredentials: true,
-        headers: {
-          "Content-Type": "application/json",
-        },
-        validateStatus: (status) => status < 500,
-      });
+      const res = await axiosInstance.post("/auth/change/password", formData);
 
       return {
         success: res.status === 200,

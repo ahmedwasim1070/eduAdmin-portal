@@ -1,4 +1,4 @@
-import { useAuthStore } from "../store/useAuthStore";
+import { useAuthStore } from "../../store/useAuthStore";
 import { X, Pencil } from "lucide-react";
 
 type DashboardSettingProps = {
@@ -10,14 +10,8 @@ export const DashboardSetting = ({ setIsSetting }: DashboardSettingProps) => {
 
   return (
     <>
-      <div
-        onClick={() => setIsSetting(false)}
-        className="fixed inset-0 min-h-screen backdrop-blur-sm bg-white/10"
-      >
-        <div
-          onClick={(e) => e.stopPropagation()}
-          className="absolute top-1/2 left-1/2 2xl:w-1/2 lg:w-[70%] sm:w-[90%] 2xl:h-[65%] sm:h-[90%] -translate-x-1/2 -translate-y-1/2 bg-white border shadow-2xl border-black/20 rounded-xl flex flex-col items-center justify-around py-4 gap-y-10"
-        >
+      <div className="fixed inset-0 min-h-screen backdrop-blur-sm bg-white/10">
+        <div className="absolute top-1/2 left-1/2 2xl:w-1/2 lg:w-[70%] sm:w-[90%] 2xl:h-[65%] sm:h-[90%] -translate-x-1/2 -translate-y-1/2 bg-white border shadow-2xl border-black/20 rounded-xl flex flex-col items-center justify-around py-4 gap-y-10">
           <button
             onClick={() => setIsSetting(false)}
             className="absolute right-2 top-2 cursor-pointer hover:bg-gray-300 rounded-full p-0.5 duration-75"

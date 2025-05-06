@@ -9,12 +9,11 @@ import {
   reqOTP,
   verifyOTP,
   changePassword,
+  signup,
 } from "../controllers/auth.controller.js";
-import { quiryRootUser } from "../controllers/userQuiry.controller.js";
 
 import {
   protectRoute,
-  validateRoot,
   protectRegisterRoot,
 } from "../middlewares/auth.middleware.js";
 
@@ -38,7 +37,7 @@ router.post("/verify/otp", verifyOTP);
 // Change Password
 router.post("/change/password", protectRoute, changePassword);
 
-// Quieries
-router.get("/quiry/root", protectRoute, validateRoot, quiryRootUser);
+// Supervisor user add another user (User Signup)
+router.post("/signup/user", protectRoute, signup);
 
 export default router;

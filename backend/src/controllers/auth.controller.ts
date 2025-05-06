@@ -18,7 +18,7 @@ export const checkAuth = async (req: Request, res: Response): Promise<void> => {
     console.log(`${user.email} just logged in ! `);
     res.status(200).json({
       message: "Token verified - Logging In",
-      user
+      user,
     });
     return;
   } catch (error) {
@@ -151,8 +151,11 @@ export const reqOTP = async (req: Request, res: Response): Promise<void> => {
     }
 
     const OTP = await mailOTP(email);
+
     user.otp = OTP;
+
     user.otpCreatedAt = Date.now();
+
     await user.save();
 
     res.status(200).json({ message: "OTP sended" });
@@ -312,7 +315,7 @@ export const changePassword = async (
   }
 };
 
-// Root Signup
+// Root Signup (this only gets called if it is a first user)
 export const registerRoot = async (
   req: Request,
   res: Response
@@ -323,37 +326,30 @@ export const registerRoot = async (
     return;
   }
 
-  try {
-    const rootUsers = await userModel.find({ role: "root" });
-    if (rootUsers && rootUsers.length < 5) {
-      res.status(400).json({ message: "Root users limit reached ! " });
-      return;
-    }
+  const emailRegex = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{0,3})+$/;
+  if (!emailRegex.test(email)) {
+    res
+      .status(400)
+      .json({ message: "Invalid Email addresss ! ", errorEmail: true });
+    return;
+  }
 
+  const phoneRegex = /^\+?\d{10,14}$/;
+  if (!phoneRegex.test(contactNumber)) {
+    res.status(400).json({ message: "Invalid phone number !" });
+    return;
+  }
+
+  if (password.length < 8) {
+    res.status(400).json({ message: "Invalid password !" });
+    return;
+  }
+  try {
     const user = await userModel.findOne({ email });
     if (user) {
       res
         .status(409)
         .json({ message: " User already registered ! ", isRoot: true });
-      return;
-    }
-
-    const emailRegex = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{0,3})+$/;
-    if (!emailRegex.test(email)) {
-      res
-        .status(400)
-        .json({ message: "Invalid Email addresss ! ", errorEmail: true });
-      return;
-    }
-
-    const phoneRegex = /^\+?\d{10,14}$/;
-    if (!phoneRegex.test(contactNumber)) {
-      res.status(400).json({ message: "Invalid phone number !" });
-      return;
-    }
-
-    if (password.length < 8) {
-      res.status(400).json({ message: "Invalid password !" });
       return;
     }
 
@@ -367,12 +363,91 @@ export const registerRoot = async (
     });
     await newRoot.save();
 
-    console.log(`${newRoot.email} just got registered as root`);
+    console.log(`${newRoot.email} just got registered as ${newRoot.role}`);
     res.status(200).json({ message: "Root created successfully!" });
     return;
   } catch (error) {
     console.error("Error in registerRoot controller:", error);
     res.status(500).json({ message: "Internal server error !" });
+    return;
+  }
+};
+
+export const signup = async (req: Request, res: Response) => {
+  const newUser = req.body;
+  if (
+    !newUser.fullName ||
+    !newUser.email ||
+    !newUser.contactNumber ||
+    !newUser.password ||
+    !newUser.role ||
+    !newUser.status
+  ) {
+    res.status(400).json({ message: "All fields are required" });
+    return;
+  }
+
+  const emailRegex = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{0,3})+$/;
+  if (!emailRegex.test(newUser.email)) {
+    res
+      .status(400)
+      .json({ message: "Invalid Email addresss ! ", errorEmail: true });
+    return;
+  }
+
+  const phoneRegex = /^\+?\d{10,14}$/;
+  if (!phoneRegex.test(newUser.contactNumber)) {
+    res.status(400).json({ message: "Invalid phone number !" });
+    return;
+  }
+
+  if (newUser.password.length < 8) {
+    res.status(400).json({ message: "Invalid password !" });
+    return;
+  }
+
+  if (!["root", "principle", "admin", "student"].includes(newUser.role)) {
+    res.status(400).json({ message: "Bad Request !" });
+    return;
+  }
+
+  if (!["active", "deleted", "suspended"].includes(newUser.status)) {
+    res.status(400).json({ message: "Bad Request !" });
+    return;
+  }
+
+  const user = (req as protectRouteResponse).user;
+  try {
+    const isAuthorized = user.canCreateUser(newUser.role);
+    if (!isAuthorized) {
+      res.status(401).json({ message: "Not authorized !" });
+      return;
+    }
+
+    const isNewUser = await userModel.findOne({ email: newUser.email });
+    if (isNewUser) {
+      res.status(400).json({ message: "Email already registerd !." });
+      return;
+    }
+
+    const signupNewUser = new userModel({
+      fullName: newUser.fullName,
+      email: newUser.email,
+      contactNumber: newUser.contactNumber,
+      password: newUser.password,
+      role: newUser.role,
+      status: newUser.status,
+    });
+    signupNewUser.save();
+
+    console.log(
+      `${signupNewUser.email} just got registered as ${signupNewUser.role}`
+    );
+    res.status(200).json({ message: "New user successfully created!" });
+    return;
+  } catch (error) {
+    console.error("Error in Signup controller :", error);
+    res.status(500).json({ message: "Internel Server error" });
     return;
   }
 };

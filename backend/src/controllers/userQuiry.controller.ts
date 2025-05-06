@@ -20,7 +20,7 @@ export const quiryRootUser = async (
       return;
     }
 
-    res.status(200).json({ message: "Root Users !", rootUsers });
+    res.status(200).json({ message: "Listed all the root Users !", rootUsers });
     return;
   } catch (error) {
     console.error("Error in quiryRootUser controller : ", error);

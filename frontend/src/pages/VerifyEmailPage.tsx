@@ -1,4 +1,4 @@
-import { Verification } from "../components/Verification";
+import { Verification } from "../components/Forms/Verification";
 
 function VerifyEmailPage() {
   return (

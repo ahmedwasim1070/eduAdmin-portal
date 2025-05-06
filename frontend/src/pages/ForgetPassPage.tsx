@@ -1,6 +1,6 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
-import { Verification } from "../components/Verification";
+import { Verification } from "../components/Forms/Verification";
 import { useAuthStore } from "../store/useAuthStore";
 import { toast } from "react-hot-toast";
 

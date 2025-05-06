@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { useAuthStore } from "../store/useAuthStore";
+import { useAuthStore } from "../../store/useAuthStore";
 import { toast } from "react-hot-toast";
 
 type VerificationProps = {
@@ -12,14 +12,14 @@ export const Verification = ({
   setForgetPassword,
   setOtpAsPass,
 }: VerificationProps) => {
-  const { checkAuth, reqOtp, verifyOtp } = useAuthStore();
   const location = useLocation();
   const navigate = useNavigate();
+  const { checkAuth, reqOtp, verifyOtp } = useAuthStore();
 
   const [formData, setFormData] = useState({
     email: "",
     otp: "",
-    reqType: location.pathname.slice(1, location.pathname.length),
+    reqType: location.pathname.slice(1),
   });
 
   const [isRequestingOtp, setIsRequestingOtp] = useState(false);

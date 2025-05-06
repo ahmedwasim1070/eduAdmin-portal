@@ -10,7 +10,7 @@ export interface IUser extends Document {
   password: string;
   otp?: string;
   otpCreatedAt: number;
-  role: "root" | "principle" | "admin" | "student";
+  role: "root" | "principal" | "admin" | "student";
   collegeName: string;
   permissions: string[];
   documentStatus: "approved" | "rejected" | "pending";
@@ -71,7 +71,7 @@ const userSchema: Schema<IUser> = new Schema(
     role: {
       type: String,
       required: true,
-      enum: ["root", "principle", "admin", "student"],
+      enum: ["root", "principal", "admin", "student"],
     },
     collegeName: {
       type: String,
@@ -92,8 +92,8 @@ const userSchema: Schema<IUser> = new Schema(
       type: [String],
       default: function (this: IUser) {
         const permission = {
-          root: ["root", "principle", "admin", "student"],
-          principle: ["principle", "admin", "student"],
+          root: ["root", "principal", "admin", "student"],
+          principal: ["principal", "admin", "student"],
           admin: ["admin", "student"],
           student: [],
         };
@@ -145,8 +145,8 @@ userSchema.methods.canCreateUser = function (
   targetRole: string
 ): boolean {
   const creationRules: Record<IUser["role"], string[]> = {
-    root: ["principle", "admin", "studnet"],
-    principle: ["principle", "admin", "student"],
+    root: ["root", "principal", "admin", "studnet"],
+    principal: ["principal", "admin", "student"],
     admin: ["admin", "student"],
     student: [],
   };
