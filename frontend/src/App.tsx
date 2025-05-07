@@ -20,6 +20,7 @@ const App = () => {
     checkAuth,
   } = useAuthStore();
 
+  // Check cookie validation
   useEffect(() => {
     checkAuth();
   }, [checkAuth]);
@@ -89,7 +90,9 @@ const App = () => {
               verifyEmailPage ? <VerifyEmailPage /> : <Navigate to="/" />
             }
           ></Route>
+          {/* Forget Password */}
           <Route path="/forgetpassword" element={<ForgetPassPage />}></Route>
+          {/*  */}
         </Routes>
       </div>
     </>

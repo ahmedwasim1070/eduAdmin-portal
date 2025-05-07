@@ -1,6 +1,7 @@
 import mongoose, { Schema, Document, Model } from "mongoose";
 import bcrypt from "bcrypt";
 
+// Typecast document
 export interface IUser extends Document {
   _id: string;
   fullName: string;
@@ -29,13 +30,16 @@ export interface IUser extends Document {
   resetLoginAttempt(): void;
 }
 
+// Schema
 const userSchema: Schema<IUser> = new Schema(
   {
+    // Full name
     fullName: {
       type: String,
       required: [true, "Full Name is requried"],
       trim: true,
     },
+    // Email
     email: {
       unique: [true, "Email already exsist`s "],
       type: String,
@@ -46,33 +50,40 @@ const userSchema: Schema<IUser> = new Schema(
         "Please fill a valid email address",
       ],
     },
+    // Email status
     emailStatus: {
       type: String,
       enum: ["verified", "not-verified"],
       default: "not-verified",
     },
+    // Contact Number
     contactNumber: {
       type: String,
       required: [true, "Phone Number is required"],
       match: [/^\+?(\d{10,14})$/, "Please fill a valid phone number"],
     },
+    // Password
     password: {
       type: String,
       required: [true, "Password is required"],
     },
+    // OTP
     otp: {
       type: String,
       required: false,
     },
+    // OTP created at
     otpCreatedAt: {
       type: Number,
       required: false,
     },
+    // Role
     role: {
       type: String,
       required: true,
       enum: ["root", "principal", "admin", "student"],
     },
+    // College name required only if it is not root
     collegeName: {
       type: String,
       required: function (this: IUser) {
@@ -80,6 +91,7 @@ const userSchema: Schema<IUser> = new Schema(
       },
       trim: true,
     },
+    // Document status for student only
     documentStatus: {
       type: String,
       required: function (this: IUser) {
@@ -88,6 +100,7 @@ const userSchema: Schema<IUser> = new Schema(
       enum: ["approved", "rejected", "pending"],
       default: "pending",
     },
+    // Permissions
     permissions: {
       type: [String],
       default: function (this: IUser) {
@@ -100,20 +113,24 @@ const userSchema: Schema<IUser> = new Schema(
         return permission[this.role] || [];
       },
     },
+    // Status
     status: {
       type: String,
       enum: ["active", "deleted", "suspended"],
       default: "active",
     },
+    // Login attempts
     loginAttempt: {
       type: Number,
       default: 0,
       max: 5,
     },
+    // Last Login
     lastLogin: {
       type: Number,
       required: false,
     },
+    // Created by
     createdBy: {
       type: mongoose.Schema.Types.ObjectId || "self-created",
       ref: "User",
@@ -123,12 +140,14 @@ const userSchema: Schema<IUser> = new Schema(
   { timestamps: true }
 );
 
+// Compares password
 userSchema.methods.comparePassword = function (
   userPassword: string
 ): Promise<boolean> {
   return bcrypt.compare(userPassword, this.password);
 };
 
+// Compares OTP
 userSchema.methods.compareOTP = async function (
   this: IUser,
   userOTP: string
@@ -140,6 +159,7 @@ userSchema.methods.compareOTP = async function (
   return false;
 };
 
+// Check permission
 userSchema.methods.canCreateUser = function (
   this: IUser,
   targetRole: string
@@ -154,6 +174,7 @@ userSchema.methods.canCreateUser = function (
   return creationRules[this.role]?.includes(targetRole) || false;
 };
 
+// Chnages password
 userSchema.methods.updatePassword = function (
   this: IUser,
   newPassword: string
@@ -162,16 +183,19 @@ userSchema.methods.updatePassword = function (
   return;
 };
 
+// Increment login by 1
 userSchema.methods.incrementLoginAttempt = function (): void {
   this.loginAttempt += 1;
   return;
 };
 
+// Decrement login by 1
 userSchema.methods.resetLoginAttempt = function (): void {
   this.loginAttempt = 0;
   return;
 };
 
+// Middleawre
 userSchema.pre<IUser>("save", async function (this: IUser, next) {
   try {
     if (this.isModified("password")) {

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useAuthStore } from "../../store/useAuthStore.ts";
 import { useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
@@ -30,9 +30,7 @@ export const Login = () => {
     password: true,
   });
 
-  /**
-   * Validation regex patterns
-   */
+  /** * Validation regex patterns */ 
   const validationPatterns = {
     email: /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/,
   };
@@ -48,10 +46,10 @@ export const Login = () => {
   // Submit button state - disabled by default until validation passes
   const [disableSubmit, setDisableSubmit] = useState(true);
 
-  // Handle Form Input
+  // Handle form input
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    let isValid = false;
+    let isValid = true;
 
     switch (name) {
       case "email":
@@ -65,28 +63,27 @@ export const Login = () => {
     }
 
     setErrorForm({ ...errorForm, [name]: isValid });
-
     setFormData({ ...formData, [name]: value });
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    if (!disableSubmit) {
-      const result = await login(formData);
-      if (result.success) {
-        toast.success(result.message);
-        setFormData({
-          email: "",
-          password: "",
-        });
-        checkAuth();
-        navigate("/");
-      } else {
-        toast.error(result.message);
-        if (result.verifyEmail === true) {
-          navigate("/verifyemail");
-        }
+    const result = await login(formData);
+
+    if (result.success) {
+      toast.success(result.message);
+
+      setFormData({
+        email: "",
+        password: "",
+      });
+      checkAuth();
+      navigate("/");
+    } else {
+      toast.error(result.message);
+      if (result.verifyEmail === true) {
+        navigate("/verifyemail");
       }
     }
     //
@@ -107,10 +104,11 @@ export const Login = () => {
           className="px-4 py-4 text-center"
         >
           <h1 className="text-3xl text-textColor font-bold">Login</h1>
-          <div className="flex flex-col justify-start items-start text-sm py-5 text-textColor">
-            <div className="w-full font-medium text-left flex flex-col gap-y-2 text-sm py-2 text-textColor">
+          <div className="flex flex-col justify-start  items-start font-medium text-left text-sm py-5 text-textColor">
+            {/* Email Form Field */}
+            <div className="w-full flex flex-col gap-y-2 py-2">
               <label
-                className={` ${
+                className={`${
                   errorForm.email ? "text-red-600" : "text-textColor"
                 }`}
                 htmlFor="email"
@@ -118,21 +116,41 @@ export const Login = () => {
                 {errorForm.email ? errorMessages.email : "Email"}
               </label>
               <input
-                id="email"
-                name="email"
-                value={formData.email}
-                type="email"
-                placeholder="Email"
-                className={`w-full  bg-white rounded-md py-2 px-4 outline-none border ${
+                className={`w-full bg-white rounded-md py-2 px-4 outline-none border ${
                   errorForm.email ? "border-red-600" : "border-secondaryColor"
                 }`}
+                type="email"
+                name="email"
+                id="email"
                 onChange={handleChange}
               />
             </div>
-
+            {/* Password Form Field */}
+            <div className="w-full flex flex-col gap-y-2 py-2">
+              <label
+                className={`${
+                  errorForm.password ? "text-red-600" : "text-textColor"
+                }`}
+                htmlFor="password"
+              >
+                {errorForm.password ? errorMessages.password : "Password"}
+              </label>
+              <input
+                className={`w-full bg-white rounded-md py-2 px-4 outline-none border ${
+                  errorForm.password
+                    ? "border-red-600"
+                    : "border-secondaryColor"
+                }`}
+                type="password"
+                name="password"
+                id="password"
+                onChange={handleChange}
+              />
+            </div>
+            {/* Forget Password */}
             <div className="py-1">
               <Link
-                className="text-textColor underline hover:text-secondaryColor"
+                className="underline hover:text-secondaryColor"
                 to="/forgetpassword"
               >
                 Forget Password ?
@@ -151,6 +169,7 @@ export const Login = () => {
               Login
             </button>
           </div>
+          {/*  */}
         </form>
       </div>
     </>

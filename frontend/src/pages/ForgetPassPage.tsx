@@ -1,52 +1,64 @@
-import { useLocation, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
-import { Verification } from "../components/Forms/Verification";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useAuthStore } from "../store/useAuthStore";
 import { toast } from "react-hot-toast";
 
+// Components
+import { Verification } from "../components/Forms/Verification";
+
+type FormData = {
+  password: string;
+  confirmPassword: string;
+  otp: string;
+  reqType: string;
+};
+
 function ForgetPassPage() {
-  const navigate = useNavigate();
-  const location = useLocation();
   const { checkAuth, changePassword } = useAuthStore();
 
-  const [forgetPassword, setForgetPassword] = useState(false);
-  const [otpAsPass, setOtpAsPass] = useState("");
+  // For redirecting
+  const navigate = useNavigate();
+  // For fetching url
+  const location = useLocation();
 
-  const [formData, setFormData] = useState({
-    reqType: location.pathname.slice(1, location.pathname.length),
+  // Form data fields
+  const [formData, setFormData] = useState<FormData>({
     password: "",
     confirmPassword: "",
     otp: "",
+    reqType: location.pathname.slice(1),
   });
 
-  const [disableSubmit, setDisableSubmit] = useState(true);
-
+  // Form  error Fields
   const [errorForm, setErrorForm] = useState({
     password: true,
     confirmPassword: true,
   });
 
+  // Enables the forgetPassword side
+  const [forgetPassword, setForgetPassword] = useState(false);
+  // Stores the otp locally to send as on time password
+  const [otpAsPass, setOtpAsPass] = useState("");
+  // Disables Form
+  const [disableSubmit, setDisableSubmit] = useState(true);
+
+  // Handles form input
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
+    let isValid = false;
 
-    if (name === "password") {
-      if (value.length <= 8) {
-        setErrorForm({ ...errorForm, [name]: true });
-        setDisableSubmit(true);
-      } else {
-        setErrorForm({ ...errorForm, [name]: false });
-      }
+    switch (name) {
+      case "password":
+        isValid = value.length < 8;
+        break;
+      case "confirmPassword":
+        isValid = value !== formData.password;
+        break;
+      default:
+        break;
     }
 
-    if (name === "confirmPassword") {
-      if (value !== formData.password) {
-        setErrorForm({ ...errorForm, [name]: true });
-        setDisableSubmit(true);
-      } else {
-        setErrorForm({ ...errorForm, [name]: false });
-      }
-    }
-
+    setErrorForm({ ...errorForm, [name]: isValid });
     setFormData({ ...formData, [name]: value });
   };
 
@@ -77,6 +89,7 @@ function ForgetPassPage() {
     const allValid = Object.values(errorForm).every((val) => val === false);
     setDisableSubmit(!allValid);
   }, [errorForm]);
+  //
   return (
     <>
       <section className="w-full h-[100vh] flex justify-center items-center bg-gray-50">
@@ -90,6 +103,7 @@ function ForgetPassPage() {
                 Setup new Password
               </h1>
               <div className="flex flex-col gap-y-2 text-sm py-6 text-textColor">
+                {/* Password */}
                 <div className="flex flex-col items-start gap-y-2">
                   <label
                     className={`${
@@ -114,6 +128,7 @@ function ForgetPassPage() {
                     placeholder="Password"
                   />
                 </div>
+                {/* Confirm Password */}
                 <div className="flex flex-col items-start gap-y-2">
                   <label
                     className={`${
@@ -141,6 +156,7 @@ function ForgetPassPage() {
                   />
                 </div>
               </div>
+              {/* Submit button */}
               <div className="flex flex-col items-start gap-y-2">
                 <button
                   disabled={disableSubmit}
@@ -153,6 +169,7 @@ function ForgetPassPage() {
                   Setup
                 </button>
               </div>
+              {/*  */}
             </form>
           </div>
         ) : (

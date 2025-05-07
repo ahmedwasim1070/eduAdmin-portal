@@ -2,6 +2,7 @@ import { useState } from "react";
 
 import { useAuthStore } from "../store/useAuthStore";
 
+// Components
 import { Navbar } from "../components/Dashboard/Navbar";
 import { DashboardSetting } from "../components/Dashboard/DashboardSettings";
 import { UserInfoPanel } from "../components/Dashboard/UserInfoPanel";
@@ -11,9 +12,11 @@ import { Signup } from "../components/Forms/Signup";
 function HomePage() {
   const { authUser } = useAuthStore();
 
+  // Windows
   const [isSetting, setIsSetting] = useState(false);
   const [isRootSignup, setIsRootSignup] = useState(false);
 
+  // User Quiry
   const [rootUsers, setRootUsers] = useState([]);
 
   return (

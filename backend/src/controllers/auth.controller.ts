@@ -1,5 +1,7 @@
 import { Response, Request } from "express";
 
+import { Validator } from "../lib/validator.js";
+
 import userModel, { IUser } from "../models/user.model.js";
 
 import { createToken } from "../lib/util.js";
@@ -8,8 +10,12 @@ import { protectRouteResponse } from "../middlewares/auth.middleware.js";
 
 import { mailOTP } from "./mailer.controller.js";
 
+// Object to validate request data
+const validator = new Validator();
+
 // Check's Auth
 export const checkAuth = async (req: Request, res: Response): Promise<void> => {
+  // Get the authenticated cookie
   const user = (req as protectRouteResponse).user;
   try {
     user.lastLogin = Date.now();
@@ -28,7 +34,7 @@ export const checkAuth = async (req: Request, res: Response): Promise<void> => {
   }
 };
 
-// Checks Root exsists
+// Checks Root exsists for authentication less signup for base user
 export const checkRoot = async (req: Request, res: Response): Promise<void> => {
   try {
     const isRoot = await userModel.findOne({ role: "root" });
@@ -52,15 +58,16 @@ export const checkRoot = async (req: Request, res: Response): Promise<void> => {
 
 // Creates Cookie
 export const login = async (req: Request, res: Response): Promise<void> => {
+  // Gets form
   const { email, password } = req.body;
-  if (!email || !password) {
-    res.status(400).json({ message: "All fields are required" });
-    return;
-  }
+  const validations = [
+    validator.validateEmail(email),
+    validator.validatePassword(password),
+  ];
 
-  const emailRegex = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{0,3})+$/;
-  if (!emailRegex.test(email)) {
-    res.status(400).json({ message: "Invalid email" });
+  const firstError = validations.find((err) => err !== null);
+  if (firstError) {
+    res.status(400).json({ message: firstError });
     return;
   }
   try {
@@ -73,6 +80,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     if (user.loginAttempt >= 5) {
       user.emailStatus === "not-verified";
       await user.save();
+
       res.status(423).json({
         message:
           "Account blocked due to too many login attempts. Verify Email.",
@@ -115,13 +123,14 @@ export const login = async (req: Request, res: Response): Promise<void> => {
 // Requests OTP
 export const reqOTP = async (req: Request, res: Response): Promise<void> => {
   const { email, reqType } = req.body;
-  if (!email) {
-    res.status(400).json({ message: "All fields are required !" });
-    return;
-  }
+  const validations = [
+    validator.validateEmail(email),
+    validator.validateRequestedOtpType(reqType),
+  ];
 
-  if (!reqType || !["verifyemail", "forgetpassword"].includes(reqType)) {
-    res.status(400).json({ message: "Invalid Request !" });
+  const firstError = validations.find((err) => err !== null);
+  if (firstError) {
+    res.status(400).json({ message: firstError });
     return;
   }
   try {
@@ -170,13 +179,15 @@ export const reqOTP = async (req: Request, res: Response): Promise<void> => {
 // Match OTP
 export const verifyOTP = async (req: Request, res: Response): Promise<void> => {
   const { email, otp, reqType } = req.body;
-  if (!email || !reqType || typeof otp !== "string" || otp.length !== 6) {
-    res.status(400).json({ message: "Invalid Request!" });
-    return;
-  }
+  const validations = [
+    validator.validateEmail(email),
+    validator.validateOTP(otp),
+    validator.validateRequestedOtpType(reqType),
+  ];
 
-  if (!reqType || !["verifyemail", "forgetpassword"].includes(reqType)) {
-    res.status(400).json({ message: "Invalid Request !" });
+  const firstError = validations.find((err) => err !== null);
+  if (firstError) {
+    res.status(400).json({ message: firstError });
     return;
   }
   try {
@@ -252,23 +263,15 @@ export const changePassword = async (
   res: Response
 ): Promise<void> => {
   const { reqType, otp, oldPassword, password, confirmPassword } = req.body;
+  const validations = [
+    validator.validateRequestedOtpType(reqType),
+    validator.validatePassword(password),
+    validator.validateConfirmPassword(password, confirmPassword),
+  ];
 
-  if (!["forgetpassword", "verifypassword"].includes(reqType)) {
-    res.status(400).json({ message: "Invalid request !" });
-    return;
-  }
-
-  if (!password || !confirmPassword) {
-    res
-      .status(400)
-      .json({ message: "Password and confirm password is required" });
-    return;
-  }
-
-  if (password !== confirmPassword) {
-    res
-      .status(400)
-      .json({ message: "Password and confirm password should match !" });
+  const firstError = validations.find((err) => err !== null);
+  if (firstError) {
+    res.status(400).json({ message: firstError });
     return;
   }
 
@@ -315,104 +318,25 @@ export const changePassword = async (
   }
 };
 
-// Root Signup (this only gets called if it is a first user)
-export const registerRoot = async (
-  req: Request,
-  res: Response
-): Promise<void> => {
-  const { fullName, email, contactNumber, password } = req.body;
-  if (!fullName || !email || !contactNumber || !password) {
-    res.status(400).json({ message: "All fields are required" });
-    return;
-  }
-
-  const emailRegex = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{0,3})+$/;
-  if (!emailRegex.test(email)) {
-    res
-      .status(400)
-      .json({ message: "Invalid Email addresss ! ", errorEmail: true });
-    return;
-  }
-
-  const phoneRegex = /^\+?\d{10,14}$/;
-  if (!phoneRegex.test(contactNumber)) {
-    res.status(400).json({ message: "Invalid phone number !" });
-    return;
-  }
-
-  if (password.length < 8) {
-    res.status(400).json({ message: "Invalid password !" });
-    return;
-  }
-  try {
-    const user = await userModel.findOne({ email });
-    if (user) {
-      res
-        .status(409)
-        .json({ message: " User already registered ! ", isRoot: true });
-      return;
-    }
-
-    const newRoot = new userModel({
-      fullName,
-      email,
-      contactNumber,
-      password,
-      role: "root",
-      status: "active",
-    });
-    await newRoot.save();
-
-    console.log(`${newRoot.email} just got registered as ${newRoot.role}`);
-    res.status(200).json({ message: "Root created successfully!" });
-    return;
-  } catch (error) {
-    console.error("Error in registerRoot controller:", error);
-    res.status(500).json({ message: "Internal server error !" });
-    return;
-  }
-};
-
+// Signup user
 export const signup = async (req: Request, res: Response) => {
   const newUser = req.body;
-  if (
-    !newUser.fullName ||
-    !newUser.email ||
-    !newUser.contactNumber ||
-    !newUser.password ||
-    !newUser.role ||
-    !newUser.status
-  ) {
-    res.status(400).json({ message: "All fields are required" });
-    return;
-  }
 
-  const emailRegex = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{0,3})+$/;
-  if (!emailRegex.test(newUser.email)) {
-    res
-      .status(400)
-      .json({ message: "Invalid Email addresss ! ", errorEmail: true });
-    return;
-  }
-
-  const phoneRegex = /^\+?\d{10,14}$/;
-  if (!phoneRegex.test(newUser.contactNumber)) {
-    res.status(400).json({ message: "Invalid phone number !" });
-    return;
-  }
-
-  if (newUser.password.length < 8) {
-    res.status(400).json({ message: "Invalid password !" });
-    return;
-  }
-
-  if (!["root", "principle", "admin", "student"].includes(newUser.role)) {
-    res.status(400).json({ message: "Bad Request !" });
-    return;
-  }
-
-  if (!["active", "deleted", "suspended"].includes(newUser.status)) {
-    res.status(400).json({ message: "Bad Request !" });
+  const validations = [
+    validator.validateFullName(newUser.fullName),
+    validator.validateEmail(newUser.email),
+    validator.validatePhone(newUser.contactNumber),
+    validator.validatePassword(newUser.password),
+    validator.validateConfirmPassword(
+      newUser.password,
+      newUser.confirmPassword
+    ),
+    validator.validateRole(newUser.role),
+    validator.validateStatus(newUser.status),
+  ];
+  const firstError = validations.find((err) => err !== null);
+  if (firstError) {
+    res.status(400).json({ message: firstError });
     return;
   }
 
@@ -448,6 +372,55 @@ export const signup = async (req: Request, res: Response) => {
   } catch (error) {
     console.error("Error in Signup controller :", error);
     res.status(500).json({ message: "Internel Server error" });
+    return;
+  }
+};
+
+// Root Signup (this only gets called if it is a base user)
+export const registerRoot = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  const { fullName, email, contactNumber, password, confirmPassword } =
+    req.body;
+  const validations = [
+    validator.validateFullName(fullName),
+    validator.validateEmail(email),
+    validator.validatePhone(contactNumber),
+    validator.validatePassword(password),
+    validator.validateConfirmPassword(password, confirmPassword),
+  ];
+  const firstError = validations.find((err) => err !== null);
+  if (firstError) {
+    res.status(400).json({ message: firstError });
+    return;
+  }
+
+  try {
+    const user = await userModel.findOne({ email });
+    if (user) {
+      res
+        .status(409)
+        .json({ message: " User already registered ! ", isRoot: true });
+      return;
+    }
+
+    const newRoot = new userModel({
+      fullName,
+      email,
+      contactNumber,
+      password,
+      role: "root",
+      status: "active",
+    });
+    await newRoot.save();
+
+    console.log(`${newRoot.email} just got registered as ${newRoot.role}`);
+    res.status(200).json({ message: "Root created successfully!" });
+    return;
+  } catch (error) {
+    console.error("Error in registerRoot controller:", error);
+    res.status(500).json({ message: "Internal server error !" });
     return;
   }
 };

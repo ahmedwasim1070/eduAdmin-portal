@@ -21,9 +21,11 @@ app.use(
   })
 );
 
+// Routes
 app.use("/api/auth", userRoutes);
 app.use("/api/quiry", quiryRoute);
 
+// 
 const PORT = process.env.PORT;
 app.listen(PORT, () => {
   console.log(`Server started at : ${PORT}`);

@@ -10,7 +10,7 @@ export interface CustomJwtPyaload extends JwtPayload {
   userId: string;
 }
 
-// Check the Auth cookie
+// Check the Authentication cookie
 export const protectRoute = async (
   req: Request,
   res: Response,
@@ -67,6 +67,7 @@ export const validateRoot = async (
   }
 };
 
+// Protect authentication less signup if there is root
 export const protectRegisterRoot = async (
   req: Request,
   res: Response,
