@@ -18,7 +18,7 @@ export interface IUser extends Document {
   status: "active" | "deleted" | "suspended";
   loginAttempt: number;
   lastLogin?: number;
-  createdBy?: mongoose.Types.ObjectId;
+  createdBy?: string;
   createdAt?: Date;
   updatedAt?: Date;
 
@@ -132,9 +132,8 @@ const userSchema: Schema<IUser> = new Schema(
     },
     // Created by
     createdBy: {
-      type: mongoose.Schema.Types.ObjectId || "self-created",
-      ref: "User",
-      default: null,
+      type: String,
+      default: "self-created",
     },
   },
   { timestamps: true }

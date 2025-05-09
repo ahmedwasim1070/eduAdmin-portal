@@ -8,7 +8,7 @@ import { X } from "lucide-react";
 type SignupProps = {
   role?: string; // Optional role for user registration
   componentType?: string; // Optional title for the component
-  setIsRootSignup?: React.Dispatch<React.SetStateAction<boolean>>; // Function to toggle signup modal
+  setCloseForm?: React.Dispatch<React.SetStateAction<boolean>>; // Function to toggle signup modal
 };
 
 // Form field structure
@@ -32,11 +32,7 @@ type ErrorForm = {
 };
 
 // Signup Component - Handles user registration with validation
-export const Signup = ({
-  role,
-  componentType,
-  setIsRootSignup,
-}: SignupProps) => {
+export const Signup = ({ role, componentType, setCloseForm }: SignupProps) => {
   const navigate = useNavigate();
   const { authUser, registerRoot, signup } = useAuthStore();
 
@@ -136,7 +132,7 @@ export const Signup = ({
         if (result.success) {
           toast.success(result.message);
           resetForm();
-          setIsRootSignup && setIsRootSignup(false);
+          setCloseForm && setCloseForm(false);
         } else {
           if (result.errorEmail) {
             setErrorForm((prev) => ({ ...prev, email: true }));
@@ -171,12 +167,12 @@ export const Signup = ({
   return (
     <div
       className="w-full sm:w-[90%] md:w-[70%] lg:w-[50%] xl:w-[40%] 2xl:w-[30%] 
-                    border border-black/20 rounded-xl bg-white shadow-2xl relative mx-auto"
+                  z-50  border border-black/20 rounded-xl bg-white shadow-2xl relative mx-auto"
     >
       {/* Close button - only shown when in modal mode */}
-      {setIsRootSignup && (
+      {setCloseForm && (
         <button
-          onClick={() => setIsRootSignup(false)}
+          onClick={() => setCloseForm(false)}
           className="absolute right-2 top-2 cursor-pointer hover:bg-gray-300 rounded-full p-0.5 duration-75"
           aria-label="Close signup form"
         >

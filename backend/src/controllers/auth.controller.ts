@@ -218,10 +218,9 @@ export const verifyOTP = async (req: Request, res: Response): Promise<void> => {
 
     await user.save();
 
-    if (user.emailStatus !== "verified" && reqType === "verifyemail") {
+    if (reqType === "verifyemail") {
       console.log(`${email} just logged in !`);
       res.status(200).json({ message: "OTP verified !", login: true });
-      return;
     }
 
     if (reqType === "forgetpassword") {
@@ -229,8 +228,8 @@ export const verifyOTP = async (req: Request, res: Response): Promise<void> => {
         message: "OTP verified !.Set up new password",
         forgetPassword: true,
       });
-      return;
     }
+    return;
   } catch (error) {
     console.error("Error in verifyOTP controller : ", error);
     res.status(500).json({ message: "Internel server error !" });
@@ -361,6 +360,7 @@ export const signup = async (req: Request, res: Response) => {
       password: newUser.password,
       role: newUser.role,
       status: newUser.status,
+      createdBy: user.email,
     });
     signupNewUser.save();
 

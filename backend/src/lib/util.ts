@@ -4,7 +4,7 @@ dotenv.config();
 import { Response } from "express";
 import crypto from "crypto";
 import JWT from "jsonwebtoken";
-import nodemailer from "nodemailer";
+import { createTransport } from "nodemailer";
 
 // Creates JWT authentication token
 export const createToken = (res: Response, userId: string): string => {
@@ -35,12 +35,15 @@ export const generateSecurePin = (length = 6): string => {
 };
 
 // Nodemailer Gmail SMTP creater
-export const transporter = nodemailer.createTransport({
+export const transporter = createTransport({
   host: "smtp.gmail.com",
   port: 587,
-  secure: process.env.NODE_ENV !== "development",
+  // secure: process.env.NODE_ENV !== "development",
+  secure: false,
   auth: {
-    user: process.env.SMTP_MAIL,
-    pass: process.env.SMTP_PASS,
+    // user: process.env.SMTP_MAIL,
+    // pass: process.env.SMTP_PASS,
+    user: "edu.app.portal@gmail.com",
+    pass: "uoeb cizy ewyt cwtf",
   },
 });

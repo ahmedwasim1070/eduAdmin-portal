@@ -1,4 +1,5 @@
 import { generateSecurePin } from "../lib/util.js";
+
 import { transporter } from "../lib/util.js";
 
 export const mailOTP = async (email: string): Promise<string> => {

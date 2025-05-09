@@ -12,7 +12,11 @@ export const quiryRootUser = async (
   const user = (req as protectRouteResponse).user;
   try {
     const rootUsers = await userModel
-      .find({ role: user.role, _id: { $ne: user._id } })
+      .find({
+        role: user.role,
+        _id: { $ne: user._id },
+        createdBy: { $ne: "self-created" },
+      })
       .select("-password");
 
     if (!rootUsers || rootUsers.length === 0) {

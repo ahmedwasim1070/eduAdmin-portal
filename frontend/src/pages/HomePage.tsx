@@ -6,7 +6,7 @@ import { useAuthStore } from "../store/useAuthStore";
 import { Navbar } from "../components/Dashboard/Navbar";
 import { DashboardSetting } from "../components/Dashboard/DashboardSettings";
 import { UserInfoPanel } from "../components/Dashboard/UserInfoPanel";
-import { ChildUserInfo } from "../components/Dashboard/ChildUserInfo";
+import { ChildUserOption } from "../components/Dashboard/ChildUserOption";
 import { Signup } from "../components/Forms/Signup";
 
 function HomePage() {
@@ -15,9 +15,7 @@ function HomePage() {
   // Windows
   const [isSetting, setIsSetting] = useState(false);
   const [isRootSignup, setIsRootSignup] = useState(false);
-
-  // User Quiry
-  const [rootUsers, setRootUsers] = useState([]);
+  const [isRegisterCollege, setIsRegisterCollege] = useState(false);
 
   return (
     <>
@@ -30,7 +28,18 @@ function HomePage() {
             <Signup
               role="root"
               componentType="Add Root User"
-              setIsRootSignup={setIsRootSignup}
+              setCloseForm={setIsRootSignup}
+            />
+          </div>
+        )}
+
+        {/* Registration for College (Principle Signup) */}
+        {authUser.role === "root" && isRegisterCollege && (
+          <div className="fixed w-full min-h-screen flex justify-center items-center bg-white/20 backdrop-blur-sm">
+            <Signup
+              role="root"
+              componentType="Register College"
+              setCloseForm={setIsRootSignup}
             />
           </div>
         )}
@@ -44,16 +53,20 @@ function HomePage() {
           {/* Displays only if it is root user */}
           {/* Root user panel */}
           {authUser.role === "root" && (
-            <ChildUserInfo
-              userType={"Root Users"}
-              setIsRootSignup={setIsRootSignup}
-              setRootUsers={setRootUsers}
+            <ChildUserOption
+              quiryType="root"
+              userType="Root Users"
+              setIsAddUser={setIsRootSignup}
             />
           )}
           {/* College Panel */}
-          {authUser.role === "root" && <ChildUserInfo userType={"Colleges"} />}
-
-          <div>{JSON.stringify(rootUsers)}</div>
+          {authUser.role === "root" && (
+            <ChildUserOption
+              quiryType="college"
+              userType="Colleges"
+              setIsAddUser={setIsRegisterCollege}
+            />
+          )}
         </main>
       </section>
     </>
