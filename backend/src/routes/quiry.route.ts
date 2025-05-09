@@ -2,12 +2,12 @@ import { Router } from "express";
 
 import { protectRoute, validateRoot } from "../middlewares/auth.middleware.js";
 
-import { quiryRootUser } from "../controllers/userQuiry.controller.js";
+import { quiryAllTypeUsers } from "../controllers/userQuiry.controller.js";
 
 const router = Router();
 
 // Quieries
 // Root Quiries roots
-router.get("/users/root", protectRoute, validateRoot, quiryRootUser);
+router.post("/users", protectRoute, validateRoot, quiryAllTypeUsers);
 
 export default router;

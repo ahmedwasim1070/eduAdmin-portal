@@ -38,9 +38,9 @@ export const generateSecurePin = (length = 6): string => {
 export const transporter = createTransport({
   host: "smtp.gmail.com",
   port: 587,
-  // secure: process.env.NODE_ENV !== "development",
+  secure: process.env.NODE_ENV !== "development",
   auth: {
-    // user: process.env.SMTP_MAIL,
-    // pass: process.env.SMTP_PASS,
+    user: process.env.SMTP_MAIL,
+    pass: process.env.SMTP_PASS,
   },
 });

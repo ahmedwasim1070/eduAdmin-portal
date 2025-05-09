@@ -26,28 +26,36 @@ export const ChildUserOption = ({
   const [isListed, setIsListed] = useState(false);
   // User Quiry data
   const [userQuiry, setUserQuiry] = useState([]);
+  // Quiry Data Amount
+  const [quiriedUser, setQuiriedUser] = useState(0);
 
   // handle user quiry request
   const handleQuiryRequest = async (): Promise<void> => {
     steIsUpdating(true);
-    if (quiryType === "root") {
-      // Response
-      const res = await axiosInstance.get("quiry/users/root");
+    // Response
+    const res = await axiosInstance.post("quiry/users", {
+      requestType: quiryType,
+    });
 
-      if (res.status === 200) {
-        setUserQuiry(res.data.rootUsers);
-        setIsListed(true);
+    if (res.status === 200) {
+      setUserQuiry(res.data.user);
+      // To expand Viewer
+      setIsListed(true);
+      // To show amount of user
+      setQuiriedUser(res.data.user.length);
 
-        // Sends update message
-        if (isListed) {
-          toast.success("Updated");
-        } else {
-          toast.success(res.data.message);
-        }
+      // Sends update message if its not a first request
+      if (isListed) {
+        toast.success("Updated");
       } else {
-        setUserQuiry([]);
-        toast.error(res.data.message);
+        // Sends sucess message if not first request
+        toast.success(res.data.message);
       }
+    } else {
+      setUserQuiry([]);
+      setIsListed(false);
+      setQuiriedUser(0);
+      toast.error(res.data.message);
     }
     steIsUpdating(false);
   };
@@ -58,7 +66,10 @@ export const ChildUserOption = ({
       <div className="mb-4">
         <div className=" rounded-t-lg shadow p-6 flex flex-row justify-between items-center border border-black/30">
           <div>
-            <h2 className="font-medium text-textColor text-lg"> {userType}</h2>
+            <h2 className="font-medium text-textColor text-lg">
+              {" "}
+              {userType} {quiriedUser > 0 && "(" + quiriedUser + ")"}
+            </h2>
           </div>
           {/*  */}
           <div className="flex flex-row gap-x-4">
@@ -94,7 +105,7 @@ export const ChildUserOption = ({
         <div
           className={`${userQuiry.length > 0 ? "h-70" : "h-0"} ${
             isUpdating ? "blur-sm" : "blur-none"
-          } relative  -z-50 rounded-b-lg shadow-md border border-black/20 bg-gray overflow-y-scroll overflow-x-hidden duration-300`}
+          } relative  rounded-b-lg shadow-md border border-black/20 bg-gray overflow-y-scroll overflow-x-hidden duration-300`}
         >
           {userQuiry.map((content, idx) => (
             <ChildUserInfo key={idx} content={content} />

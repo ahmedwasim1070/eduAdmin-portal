@@ -341,6 +341,48 @@ export const signup = async (req: Request, res: Response) => {
 
   const user = (req as protectRouteResponse).user;
   try {
+    // Can signup only 2 root user
+    if (newUser.role === "root") {
+      const root = await userModel.find({ role: "root" });
+      if (root && root.length > 2) {
+        res
+          .status(400)
+          .json({ message: "Maximum number of root user reached !" });
+        return;
+      }
+    }
+
+    // Checks for college name for principle user
+    if (newUser.role === "principle") {
+      if (!newUser.collegeName && typeof newUser.college !== "string") {
+        res.status(400).json({ message: " College Name is required !" });
+        return;
+      }
+      const college = await userModel.findOne({
+        collegeName: newUser.collegeName,
+      });
+      //
+      if (college) {
+        res.status(400).json({ message: "College already exsists !" });
+        return;
+      }
+    }
+
+    if (newUser.role === "admin" || "student") {
+      if (!newUser.collegeName && typeof newUser.college !== "string") {
+        res.status(400).json({ message: " College Name is required !" });
+        return;
+      }
+
+      const isCollege = await userModel.findOne({
+        collegeName: newUser.collegeName,
+      });
+      if (!isCollege) {
+        res.status(400).json({ message: "No such college exsists !" });
+        return;
+      }
+    }
+
     const isAuthorized = user.canCreateUser(newUser.role);
     if (!isAuthorized) {
       res.status(401).json({ message: "Not authorized !" });
@@ -360,6 +402,7 @@ export const signup = async (req: Request, res: Response) => {
       password: newUser.password,
       role: newUser.role,
       status: newUser.status,
+      collegeName: newUser.collegeName && newUser.collegeName,
       createdBy: user.email,
     });
     signupNewUser.save();

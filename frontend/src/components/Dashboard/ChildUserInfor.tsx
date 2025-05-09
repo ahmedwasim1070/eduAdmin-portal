@@ -13,10 +13,12 @@ export const ChildUserInfo = ({ key, content }: ChildUserInfoProps) => (
     className="m-4 border border-black/20 rounded-lg p-4 shadow bg-gray-50"
   >
     <div className="flex flex-row justify-between px-3 pb-4">
+
       {/* Left heading */}
       <p className="text-lg font-bold text-textColor">
         {content.role[0].toUpperCase() + content.role.slice(1)} :
       </p>
+
       {/* Left Buttons bar (delte and edit) */}
       <div className="flex flex-row gap-x-4">
         <span className="p-2 rounded-full hover:bg-secondaryColor/20 cursor-pointer">

@@ -24,7 +24,7 @@ function HomePage() {
 
         {/* Signup Page for Root User */}
         {authUser.role === "root" && isRootSignup && (
-          <div className="fixed w-full min-h-screen flex justify-center items-center bg-white/20 backdrop-blur-sm">
+          <div className="fixed w-full min-h-screen flex justify-center items-center bg-white/20 backdrop-blur-sm z-50">
             <Signup
               role="root"
               componentType="Add Root User"
@@ -35,11 +35,11 @@ function HomePage() {
 
         {/* Registration for College (Principle Signup) */}
         {authUser.role === "root" && isRegisterCollege && (
-          <div className="fixed w-full min-h-screen flex justify-center items-center bg-white/20 backdrop-blur-sm">
+          <div className="fixed w-full min-h-screen flex justify-center items-center bg-white/20 backdrop-blur-sm z-50">
             <Signup
-              role="root"
+              role="principal"
               componentType="Register College"
-              setCloseForm={setIsRootSignup}
+              setCloseForm={setIsRegisterCollege}
             />
           </div>
         )}

@@ -10,7 +10,7 @@ export const DashboardSetting = ({ setIsSetting }: DashboardSettingProps) => {
 
   return (
     <>
-      <div className="fixed inset-0 min-h-screen backdrop-blur-sm bg-white/10">
+      <div className="fixed inset-0 min-h-screen backdrop-blur-sm bg-white/10 z-50">
         <div className="absolute top-1/2 left-1/2 2xl:w-1/2 lg:w-[70%] sm:w-[90%] 2xl:h-[65%] sm:h-[90%] -translate-x-1/2 -translate-y-1/2 bg-white border shadow-2xl border-black/20 rounded-xl flex flex-col items-center justify-around py-4 gap-y-10">
           <button
             onClick={() => setIsSetting(false)}

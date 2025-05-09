@@ -12,7 +12,7 @@ export interface IUser extends Document {
   otp?: string;
   otpCreatedAt: number;
   role: "root" | "principal" | "admin" | "student";
-  collegeName: string;
+  collegeName?: string;
   permissions: string[];
   documentStatus: "approved" | "rejected" | "pending";
   status: "active" | "deleted" | "suspended";
