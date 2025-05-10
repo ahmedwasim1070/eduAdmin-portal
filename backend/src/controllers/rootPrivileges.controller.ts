@@ -4,6 +4,9 @@ import userModel, { IUser } from "../models/user.model.js";
 
 import { protectRouteResponse } from "../middlewares/auth.middleware.js";
 
+import { Validator } from "../lib/validator.js";
+const validator = new Validator();
+
 // Returns the array of all the root users
 export const quiryAllTypeUsers = async (
   req: Request,
@@ -35,35 +38,36 @@ export const quiryAllTypeUsers = async (
       res.status(200).json({ message: "User fetched !", user: rootUsers });
     } else if (requestType === "college") {
       // If it is a college quiry request
-      const colleges = await userModel.find({
-        collegeName: { $nin: ["null", ""] },
-        role: { $ne: "root" },
-      });
+      const colleges = await userModel
+        .find({
+          role: { $ne: "root" },
+        })
+        .select("-password");
 
       if (!colleges || colleges.length === 0) {
         res.status(404).json({ message: "No Colleges exsists !" });
         return;
       }
 
-      const symetricData: { [collegeKey: string]: IUser[] }[] = [];
-
+      // Structures the Data according to the College name
+      const structuredData: { [key: string]: IUser[] }[] = [];
       colleges.forEach((college: IUser) => {
-        const collegeKey = JSON.stringify(college.collegeName);
+        const collegeKey = college.collegeName as string;
 
-        const existing = symetricData.find((entry) =>
+        const existing = structuredData.find((entry) =>
           Object.hasOwn(entry, collegeKey)
         );
 
         if (existing) {
           existing[collegeKey].push(college);
         } else {
-          symetricData.push({
+          structuredData.push({
             [collegeKey]: [college],
           });
         }
       });
 
-      res.status(200).json({ message: "User fetched !", user: symetricData });
+      res.status(200).json({ message: "User fetched !", user: structuredData });
     }
 
     return;
@@ -72,4 +76,18 @@ export const quiryAllTypeUsers = async (
     res.status(500).json({ message: "Internel server error !" });
     return;
   }
+};
+
+// Suspend College
+export const suspendUser = async (res: Response, req: Request) => {
+  const { userType, userId } = req.body;
+  const validations = [validator.validateId(userId)];
+
+  const firstError = validations.find((err) => err !== null);
+  if (firstError) {
+    res.status(400).json({ message: firstError });
+    return;
+  }
+  try {
+  } catch (error) {}
 };

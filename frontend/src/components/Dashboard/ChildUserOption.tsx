@@ -2,11 +2,15 @@ import { axiosInstance } from "../../lib/axios";
 import toast from "react-hot-toast";
 import { useState } from "react";
 
+// Zustand
+import { useAuthStore } from "../../store/useAuthStore";
+
 // Icons
 import { ScrollText, Plus, RefreshCcw } from "lucide-react";
 
 // Components
-import { ChildUserInfo } from "./ChildUserInfor";
+import { SiblingUserInfo } from "./SiblingUserInfor";
+import { ChildUserInfo } from "./ChildUserInfo";
 
 // Props Casting
 type ChildUserOptionProps = {
@@ -20,6 +24,7 @@ export const ChildUserOption = ({
   userType,
   setIsAddUser,
 }: ChildUserOptionProps) => {
+  const { authUser } = useAuthStore();
   // Loading
   const [isUpdating, steIsUpdating] = useState(false);
   // Changes button behavior
@@ -88,7 +93,7 @@ export const ChildUserOption = ({
               className={`flex items-center gap-x-2 px-3 py-1 rounded-md  cursor-pointer ${
                 !isListed
                   ? " bg-secondaryColor text-textColor  hover:bg-secondaryColor/60"
-                  : "bg-gray-300"
+                  : "bg-gray-300 hover:bg-gray-200"
               }`}
             >
               {isListed ? (
@@ -103,14 +108,21 @@ export const ChildUserOption = ({
 
         {/* Loader and expand only if there is uerquiry */}
         <div
-          className={`${userQuiry.length > 0 ? "h-70" : "h-0"} ${
+          className={`${userQuiry.length > 0 ? "h-100" : "h-0"} ${
             isUpdating ? "blur-sm" : "blur-none"
           } relative  rounded-b-lg shadow-md border border-black/20 bg-gray overflow-y-scroll overflow-x-hidden duration-300`}
         >
-          {/* {userQuiry.map((content, idx) => (
-            <ChildUserInfo key={idx} content={content} />
-          ))} */}
+          {/* If User role and requested Root matches */}
+          {authUser.role === quiryType &&
+            userQuiry.map((user, idx) => (
+              <SiblingUserInfo key={idx} user={user} />
+            ))}
 
+          {/* Only display if it is for college */}
+          {quiryType === "college" &&
+            userQuiry.map((users, idx) => (
+              <ChildUserInfo key={idx} users={users} />
+            ))}
           {/* Loader */}
           {isUpdating && (
             <div
@@ -138,7 +150,6 @@ export const ChildUserOption = ({
           )}
           {/*  */}
         </div>
-        <p>{JSON.stringify(userQuiry)}</p>
       </div>
     </>
   );

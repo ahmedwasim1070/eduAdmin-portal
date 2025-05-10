@@ -13,7 +13,7 @@ type SignupProps = {
 
 // Form field structure
 type FormData = {
-  college: string;
+  collegeName: string;
   fullName: string;
   email: string;
   contactNumber: string;
@@ -25,7 +25,7 @@ type FormData = {
 
 // Form validation error state structure
 type ErrorForm = {
-  college: boolean;
+  collegeName: boolean;
   fullName: boolean;
   email: boolean;
   contactNumber: boolean;
@@ -40,7 +40,7 @@ export const Signup = ({ role, componentType, setCloseForm }: SignupProps) => {
 
   // Form state initialization
   const [formData, setFormData] = useState<FormData>({
-    college: "",
+    collegeName: "",
     fullName: "",
     email: "",
     contactNumber: "",
@@ -53,7 +53,7 @@ export const Signup = ({ role, componentType, setCloseForm }: SignupProps) => {
 
   // Validation error state - all fields have errors by default
   const [errorForm, setErrorForm] = useState<ErrorForm>({
-    college: true,
+    collegeName: true,
     fullName: true,
     email: true,
     contactNumber: true,
@@ -69,7 +69,7 @@ export const Signup = ({ role, componentType, setCloseForm }: SignupProps) => {
 
   // Validation error messages
   const errorMessages = {
-    college: "Enter a valid College Name",
+    collegeName: "Enter a valid College Name",
     fullName: "Name should be between 2 and 42 characters",
     email: "Enter a valid email",
     contactNumber: "Enter a valid phone number",
@@ -83,7 +83,7 @@ export const Signup = ({ role, componentType, setCloseForm }: SignupProps) => {
     let isValid = false;
 
     switch (name) {
-      case "college":
+      case "collegeName":
         isValid = value.length < 5 || value.length > 70;
         break;
       case "fullName":
@@ -112,7 +112,7 @@ export const Signup = ({ role, componentType, setCloseForm }: SignupProps) => {
   // Reset form to initial state
   const resetForm = () => {
     setFormData({
-      college: "",
+      collegeName: "",
       fullName: "",
       email: "",
       contactNumber: "",
@@ -169,9 +169,9 @@ export const Signup = ({ role, componentType, setCloseForm }: SignupProps) => {
 
   // Check if all form fields are valid
   useEffect(() => {
-    if (role === "root") {
+    if (location.pathname === "/signup/root" || role === "root") {
       // Create a copy of errorForm without the college property
-      const { college, ...errorFormWithoutCollege } = errorForm;
+      const { collegeName, ...errorFormWithoutCollege } = errorForm;
 
       // Check if all remaining fields are valid (false)
       const allValid = Object.values(errorFormWithoutCollege).every(
@@ -218,19 +218,23 @@ export const Signup = ({ role, componentType, setCloseForm }: SignupProps) => {
             <div className="w-full flex flex-col gap-y-2 py-2">
               <label
                 className={`${
-                  errorForm.college ? "text-red-600" : "text-textColor"
+                  errorForm.collegeName ? "text-red-600" : "text-textColor"
                 }`}
                 htmlFor="college"
               >
-                {errorForm.college ? errorMessages.college : "College"}
+                {errorForm.collegeName
+                  ? errorMessages.collegeName
+                  : "College Name"}
               </label>
               <input
                 className={`w-full bg-white rounded-md py-2 px-4 outline-none border ${
-                  errorForm.college ? "border-red-600" : "border-secondaryColor"
+                  errorForm.collegeName
+                    ? "border-red-600"
+                    : "border-secondaryColor"
                 }`}
                 type="text"
-                name="college"
-                id="college"
+                name="collegeName"
+                id="collegeName"
                 placeholder="Enter a College Name"
                 onChange={handleChange}
               />

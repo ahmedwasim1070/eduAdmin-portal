@@ -98,7 +98,9 @@ const userSchema: Schema<IUser> = new Schema(
         return this.role === "student";
       },
       enum: ["approved", "rejected", "pending"],
-      default: "pending",
+      default: function (this: IUser) {
+        return this.role === "student" ? "pending" : undefined;
+      },
     },
     // Permissions
     permissions: {

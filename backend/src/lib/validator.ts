@@ -4,6 +4,12 @@ type Status = "active" | "deleted" | "suspended";
 type RequestedOtpType = "verifyemail" | "forgetpassword";
 
 export class Validator {
+  validateId(id: string): string | null {
+    if (!id) return "ID is required.";
+    if (typeof id !== "string") return "ID must be a string.";
+    return null;
+  }
+
   validateFullName(name: string): string | null {
     if (!name) return "Full name is required.";
     if (typeof name !== "string") return "Full name must be a string.";
@@ -90,4 +96,5 @@ export class Validator {
       return "Invalid request type";
     return null;
   }
+
 }

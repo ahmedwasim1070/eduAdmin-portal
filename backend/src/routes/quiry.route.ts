@@ -2,7 +2,7 @@ import { Router } from "express";
 
 import { protectRoute, validateRoot } from "../middlewares/auth.middleware.js";
 
-import { quiryAllTypeUsers } from "../controllers/userQuiry.controller.js";
+import { quiryAllTypeUsers } from "../controllers/rootPrivileges.controller.js";
 
 const router = Router();
 

@@ -353,11 +353,12 @@ export const signup = async (req: Request, res: Response) => {
     }
 
     // Checks for college name for principle user
-    if (newUser.role === "principle") {
-      if (!newUser.collegeName && typeof newUser.college !== "string") {
+    if (newUser.role === "principal") {
+      if (!newUser.collegeName && typeof newUser.collegeName !== "string") {
         res.status(400).json({ message: " College Name is required !" });
         return;
       }
+
       const college = await userModel.findOne({
         collegeName: newUser.collegeName,
       });
@@ -368,8 +369,8 @@ export const signup = async (req: Request, res: Response) => {
       }
     }
 
-    if (newUser.role === "admin" || "student") {
-      if (!newUser.collegeName && typeof newUser.college !== "string") {
+    if (["admin", "student"].includes(newUser.role)) {
+      if (!newUser.collegeName && typeof newUser.collegeName !== "string") {
         res.status(400).json({ message: " College Name is required !" });
         return;
       }
@@ -402,7 +403,7 @@ export const signup = async (req: Request, res: Response) => {
       password: newUser.password,
       role: newUser.role,
       status: newUser.status,
-      collegeName: newUser.collegeName && newUser.collegeName,
+      collegeName: newUser.collegeName ? newUser.collegeName : "",
       createdBy: user.email,
     });
     signupNewUser.save();
