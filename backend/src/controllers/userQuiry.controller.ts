@@ -1,6 +1,6 @@
 import { Response, Request } from "express";
 
-import userModel from "../models/user.model.js";
+import userModel, { IUser } from "../models/user.model.js";
 
 import { protectRouteResponse } from "../middlewares/auth.middleware.js";
 
@@ -45,7 +45,25 @@ export const quiryAllTypeUsers = async (
         return;
       }
 
-      res.status(200).json({ message: "User fetched !", user: colleges });
+      const symetricData: { [collegeKey: string]: IUser[] }[] = [];
+
+      colleges.forEach((college: IUser) => {
+        const collegeKey = JSON.stringify(college.collegeName);
+
+        const existing = symetricData.find((entry) =>
+          Object.hasOwn(entry, collegeKey)
+        );
+
+        if (existing) {
+          existing[collegeKey].push(college);
+        } else {
+          symetricData.push({
+            [collegeKey]: [college],
+          });
+        }
+      });
+
+      res.status(200).json({ message: "User fetched !", user: symetricData });
     }
 
     return;

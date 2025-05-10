@@ -107,9 +107,9 @@ export const ChildUserOption = ({
             isUpdating ? "blur-sm" : "blur-none"
           } relative  rounded-b-lg shadow-md border border-black/20 bg-gray overflow-y-scroll overflow-x-hidden duration-300`}
         >
-          {userQuiry.map((content, idx) => (
+          {/* {userQuiry.map((content, idx) => (
             <ChildUserInfo key={idx} content={content} />
-          ))}
+          ))} */}
 
           {/* Loader */}
           {isUpdating && (
@@ -138,6 +138,7 @@ export const ChildUserOption = ({
           )}
           {/*  */}
         </div>
+        <p>{JSON.stringify(userQuiry)}</p>
       </div>
     </>
   );
