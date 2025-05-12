@@ -3,6 +3,7 @@ import { axiosInstance } from "../lib/axios";
 
 interface AuthState {
   authUser: any | null;
+  setAuthUser: (user: any) => void;
   verifyEmailPage: boolean;
   isRoot: boolean;
 
@@ -59,6 +60,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   // Loading variable
   isLoading: true,
 
+  setAuthUser: (user: any) => set({ authUser: user }),
   // Cookie validator
   checkAuth: async () => {
     try {

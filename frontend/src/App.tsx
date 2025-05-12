@@ -7,7 +7,7 @@ import HomePage from "./pages/HomePage.tsx";
 import LoginPage from "./pages/LoginPage.tsx";
 import RootSignupPage from "./pages/RootSignupPage.tsx";
 import VerifyEmailPage from "./pages/VerifyEmailPage.tsx";
-import ForgetPassPage from "./pages/ForgetPassPage.tsx";
+import { ForgetPass } from "./pages/ForgetPass.tsx";
 
 const App = () => {
   const {
@@ -91,7 +91,7 @@ const App = () => {
             }
           ></Route>
           {/* Forget Password */}
-          <Route path="/forgetpassword" element={<ForgetPassPage />}></Route>
+          <Route path="/forgetpassword" element={<ForgetPass />}></Route>
           {/*  */}
         </Routes>
       </div>

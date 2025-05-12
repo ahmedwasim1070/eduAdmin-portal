@@ -13,7 +13,7 @@ type FormData = {
   reqType: string;
 };
 
-function ForgetPassPage() {
+export const ForgetPass = () => {
   const { checkAuth, changePassword } = useAuthStore();
 
   // For redirecting
@@ -181,6 +181,4 @@ function ForgetPassPage() {
       </section>
     </>
   );
-}
-
-export default ForgetPassPage;
+};

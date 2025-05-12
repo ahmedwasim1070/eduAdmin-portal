@@ -24,7 +24,7 @@ export const Navbar = ({ setIsSetting }: NavbarProps) => {
   return (
     <>
       <header className="bg-white shadow">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+        <div className="px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
           <div className="flex items-center">
             <h1 className="text-2xl font-bold text-textColor">Dashboard</h1>
             <div className="ml-4 px-3 py-1 bg-secondaryColor text-textColor rounded-full text-sm font-medium">
