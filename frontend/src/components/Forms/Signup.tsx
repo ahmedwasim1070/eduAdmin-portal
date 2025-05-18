@@ -7,7 +7,7 @@ import { X } from "lucide-react";
 // Types for the Signup component props
 type SignupProps = {
   role?: string; // Optional role for user registration
-  componentType?: string; // Optional title for the component
+  heading?: string; // Optional title for the component
   setCloseForm?: React.Dispatch<React.SetStateAction<boolean>>; // Function to toggle signup modal
 };
 
@@ -34,7 +34,7 @@ type ErrorForm = {
 };
 
 // Signup Component - Handles user registration with validation
-export const Signup = ({ role, componentType, setCloseForm }: SignupProps) => {
+export const Signup = ({ role, heading, setCloseForm }: SignupProps) => {
   const navigate = useNavigate();
   const { authUser, registerRoot, signup } = useAuthStore();
 
@@ -208,7 +208,7 @@ export const Signup = ({ role, componentType, setCloseForm }: SignupProps) => {
       >
         {/* Form Title */}
         <h1 className="text-3xl text-textColor font-bold mb-4">
-          {componentType || "Signup"}
+          {heading || "Signup"}
         </h1>
 
         {/* Form Fields */}

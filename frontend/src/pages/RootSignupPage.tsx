@@ -11,7 +11,7 @@ function RootSignupPage() {
   return (
     <>
       <section className="w-full h-[100vh] flex justify-center items-center bg-gray-50">
-        <Signup componentType="Root Signup" />
+        <Signup heading="Root Signup" />
       </section>
     </>
   );
