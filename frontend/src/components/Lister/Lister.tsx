@@ -82,12 +82,10 @@ export const Lister = ({
 
         {/*  */}
         <div className="m-5 bg-gray-200 rounded-lg p-5 flex flex-col justify-center items-center border border-black/20">
-          {quiriedUsers.length === 0 && (
+          {Object.keys(quiriedUsers).length === 0 ? (
             <p className="text-textColor font-medium">No User Fetched ! </p>
-          )}
-
-          {quiriedUsers.map((user, idx) => (
-            <UserInfo key={idx} user={user} />
+          ) : Object.keys(quiriedUsers).map((key)=>(
+            <div></div>
           ))}
         </div>
       </div>

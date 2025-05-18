@@ -21,10 +21,10 @@ export const RootDashboard = () => {
   const [isCollegeSingup, setIsCollegeSignup] = useState(false);
 
   // Possible Quiried Users Outputs
-  const [rootUsers, setRootUsers] = useState<any[]>([]);
-  const [colleges, setColleges] = useState<any[]>([]);
-  const [deletedUsers, setDeletedUsers] = useState<any[]>([]);
-  const [suspendedUsers, setSuspendedUsers] = useState<any[]>([]);
+  const [rootUsers, setRootUsers] = useState<any>({});
+  const [colleges, setColleges] = useState<any>({});
+  const [deletedUsers, setDeletedUsers] = useState<any>({});
+  const [suspendedUsers, setSuspendedUsers] = useState<any>({});
 
   // Fetches quiried users
   const handleListUser = async () => {
@@ -44,73 +44,111 @@ export const RootDashboard = () => {
       setIsFetchingUsers(false);
     }
   };
+
   //
   useEffect(() => {
     if (quiriedUsers && quiriedUsers.length > 0) {
       quiriedUsers.forEach((user) => {
-        // Check helper
-        const isDuplicate = (arr: any[], user: any) =>
-          arr.some((u) => u._id === user._id || u.email === user.email);
-
-        // If deleted push in deleted
-        if (user.status === "deleted") {
-          setDeletedUsers((prev) =>
-            isDuplicate(prev, user) ? prev : [...prev, user]
-          );
-        }
-
-        // If suspended push in suspended
-        if (user.status === "suspended") {
-          setSuspendedUsers((prev) =>
-            isDuplicate(prev, user) ? prev : [...prev, user]
-          );
-        }
-
-        // If a root user push in root
-        if (user.role === "root" && user.status === "active") {
-          setRootUsers((prev) =>
-            isDuplicate(prev, user) ? prev : [...prev, user]
-          );
-        }
-
-        // If a college user push in that college
-        if (
-          ["principal", "admin", "student"].includes(user.role) &&
-          user.collegeName &&
-          user.status === "active"
-        ) {
-          setColleges((prev) => {
-            let collegeExists = false;
-
-            const updatedColleges = prev.map((college) => {
-              const collegeName = Object.keys(college)[0];
-
-              if (collegeName === user.collegeName) {
-                collegeExists = true;
-
-                // Check for duplicate before adding
-                const alreadyInCollege = college[collegeName].some(
-                  (u: any) => u._id === user._id || u.email === user.email
-                );
-
-                if (alreadyInCollege) return college;
-
-                const updatedCollege = [...college[collegeName], user];
+        if (user.status === "active") {
+          // Handle root users
+          if (user.role === "root") {
+            setRootUsers((prev: any) => {
+              // Check if this email already exists in the object
+              if (!prev[user.email]) {
                 return {
-                  [collegeName]: updatedCollege,
+                  ...prev,
+                  [user.email]: [user],
+                };
+              }
+              return prev;
+            });
+          }
+
+          // Handle college users
+          if (["principal", "admin", "student"].includes(user.role)) {
+            setColleges((prev: any) => {
+              const collegeName = user.collegeName;
+              // Check if this college already exists in the object
+              if (!prev[collegeName]) {
+                return {
+                  ...prev,
+                  [collegeName]: [user],
                 };
               }
 
-              return college;
-            });
+              // Check if user already exists in this college array
+              const collegeUsers = prev[collegeName];
+              const userExists = collegeUsers.some(
+                (existingUser: any) => existingUser.email === user.email
+              );
 
-            if (!collegeExists) {
-              updatedColleges.push({
-                [user.collegeName]: [user],
-              });
+              if (!userExists) {
+                return {
+                  ...prev,
+                  [collegeName]: [...collegeUsers, user],
+                };
+              }
+
+              return prev;
+            });
+          }
+        }
+
+        // Handle deleted users
+        if (user.status === "deleted") {
+          setDeletedUsers((prev: any) => {
+            const key = user.collegeName || user.email;
+
+            if (!prev[key]) {
+              return {
+                ...prev,
+                [key]: [user],
+              };
             }
 
-            return updatedColleges;
+            // Check if user already exists in this array
+            const existingUsers = prev[key];
+            const userExists = existingUsers.some(
+              (existingUser: any) => existingUser.email === user.email
+            );
+
+            if (!userExists) {
+              return {
+                ...prev,
+                [key]: [...existingUsers, user],
+              };
+            }
+
+            return prev;
+          });
+        }
+
+        // Handle suspended users
+        if (user.status === "suspended") {
+          setSuspendedUsers((prev: any) => {
+            const key = user.collegeName || user.email;
+
+            if (!prev[key]) {
+              return {
+                ...prev,
+                [key]: [user],
+              };
+            }
+
+            // Check if user already exists in this array
+            const existingUsers = prev[key];
+            const userExists = existingUsers.some(
+              (existingUser: any) => existingUser.email === user.email
+            );
+
+            if (!userExists) {
+              return {
+                ...prev,
+                [key]: [...existingUsers, user],
+              };
+            }
+
+            return prev;
           });
         }
       });
@@ -122,7 +160,7 @@ export const RootDashboard = () => {
     <section>
       {/* Popups Singup page */}
       {(isRootSignup || isCollegeSingup) && (
-        <div className="fixed w-full max-h-screen overflow-x-scroll inset-0 bg-white/10 backdrop-blur-sm">
+        <div className="fixed min-w-screen min-h-screen overflow-x-scroll inset-0 bg-white/10 backdrop-blur-sm flex items-center">
           {isRootSignup && (
             <Signup
               role="root"
