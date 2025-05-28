@@ -1,21 +1,25 @@
+// React
 import { useEffect, useState } from "react";
+
 // Zustand
 import { userFeatureStore } from "../../store/userFeatureStore";
 
 // Icons
 import { RefreshCcw } from "lucide-react";
+
 // Component
 import { Signup } from "../Forms/Signup";
 import { Lister } from "../Lister/Lister";
 import { ScrollText } from "lucide-react";
 import toast from "react-hot-toast";
 
-// Buttons
-
 export const RootDashboard = () => {
+  // Imports zustand function
   const { quiriedUsers, setQuiriedUsers } = userFeatureStore();
+
   // Loading
   const [isFetchingUsers, setIsFetchingUsers] = useState(false);
+
   // Windows
   const [isRootSignup, setIsRootSingup] = useState(false);
   const [isCollegeSingup, setIsCollegeSignup] = useState(false);
@@ -206,18 +210,28 @@ export const RootDashboard = () => {
         <Lister
           componentType="root"
           quiriedUsers={rootUsers}
+          updateQuiry={setRootUsers}
           setIsRootSingup={setIsRootSingup}
         />
         {/* Root User Lister */}
         <Lister
           componentType="college"
           quiriedUsers={colleges}
+          updateQuiry={setColleges}
           setIsCollegeSignup={setIsCollegeSignup}
         />
         {/* Root User Lister */}
-        <Lister componentType="deleted" quiriedUsers={deletedUsers} />
+        <Lister
+          componentType="deleted"
+          quiriedUsers={deletedUsers}
+          updateQuiry={setColleges}
+        />
         {/* Root User Lister */}
-        <Lister componentType="suspended" quiriedUsers={suspendedUsers} />
+        <Lister
+          componentType="suspended"
+          quiriedUsers={suspendedUsers}
+          updateQuiry={setColleges}
+        />
       </div>
     </section>
   );

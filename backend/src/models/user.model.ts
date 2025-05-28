@@ -25,7 +25,7 @@ export interface IUser extends Document {
   // Functions
   comparePassword(userPassword: string): Promise<boolean>;
   compareOTP(userOTP: string): Promise<boolean>;
-  canCreateUser(targetRole: string): boolean;
+  isParent(targetRole: string): boolean;
   incrementLoginAttempt(): void;
   resetLoginAttempt(): void;
 }
@@ -161,7 +161,7 @@ userSchema.methods.compareOTP = async function (
 };
 
 // Check permission
-userSchema.methods.canCreateUser = function (
+userSchema.methods.isParent = function (
   this: IUser,
   targetRole: string
 ): boolean {

@@ -384,7 +384,8 @@ export const signup = async (req: Request, res: Response) => {
       }
     }
 
-    const isAuthorized = user.canCreateUser(newUser.role);
+    // Checks for permission
+    const isAuthorized = user.isParent(newUser.role);
     if (!isAuthorized) {
       res.status(401).json({ message: "Not authorized !" });
       return;

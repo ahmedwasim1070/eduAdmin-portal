@@ -1,10 +1,16 @@
+// React
 import { useState } from "react";
-import { useAuthStore } from "../../store/useAuthStore";
-import { X, Pencil } from "lucide-react";
 import { Link } from "react-router-dom";
 import toast from "react-hot-toast";
-import { axiosInstance } from "../../lib/axios";
 
+// Zustand
+import { useAuthStore } from "../../store/useAuthStore";
+// Axios
+import { axiosInstance } from "../../lib/axios";
+// Icons
+import { X, Pencil } from "lucide-react";
+
+// Props for this component
 type DashboardSettingProps = {
   setIsSetting: React.Dispatch<React.SetStateAction<boolean>>;
 };
@@ -28,6 +34,7 @@ export const DashboardSetting = ({ setIsSetting }: DashboardSettingProps) => {
       const res = await axiosInstance.post("/user/change/name", {
         newFullName,
       });
+
       if (res.status === 200) {
         toast.success(res.data.message);
         setChangeNameForm(false);

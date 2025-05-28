@@ -54,22 +54,31 @@ export const changeStatus = async (req: Request, res: Response) => {
   if (
     !statusType ||
     typeof statusType !== "string" ||
-    !["active", "deleted", "suspended"].includes(statusType)
+    !["active", "deleted", "suspended", "remove"].includes(statusType)
   ) {
     res.status(400).json({ message: "Invalid Request !" });
     return;
   }
 
-  const isId = /^[a-fA-F0-9]{24}$/.test(actionOn);
+  const isEmail = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{0,3})+$/.test(
+    actionOn
+  );
 
   try {
     // Functions change according to the input
-    if (isId) {
+    if (isEmail) {
       const user = await userModel
-        .findOne({ _id: actionOn, status: { $ne: statusType } })
+        .findOne({ email: actionOn, status: { $ne: statusType } })
         .select("-password");
       if (!user) {
         res.status(404).json({ message: "User not found ! " });
+        return;
+      }
+
+      // Checks for permission
+      const isAuthorized = user.isParent(user.role);
+      if (!isAuthorized) {
+        res.status(401).json({ message: "Not authorized !" });
         return;
       }
 
@@ -92,8 +101,12 @@ export const changeStatus = async (req: Request, res: Response) => {
 
       // Changes the status of collegeUsers which is array
       collegeUsers.forEach(async (user) => {
-        user.status = statusType as "active" | "deleted" | "suspended";
-        await user.save();
+        // Checks for permission
+        const isAuthorized = user.isParent(user.role);
+        if (!isAuthorized) {
+          res.status(401).json({ message: "Not authorized !" });
+          return;
+        }
       });
 
       //
@@ -103,13 +116,13 @@ export const changeStatus = async (req: Request, res: Response) => {
     let message;
     switch (statusType) {
       case "active":
-        message = isId ? "User restored !" : "College restored !";
+        message = isEmail ? "User restored !" : "College restored !";
         break;
       case "deleted":
-        message = isId ? "User deleted !" : "College deleted !";
+        message = isEmail ? "User deleted !" : "College deleted !";
         break;
       case "suspended":
-        message = isId ? "User suspended !" : "College suspended !";
+        message = isEmail ? "User suspended !" : "College suspended !";
         break;
     }
 
@@ -128,6 +141,7 @@ export const changeName = async (
   res: Response
 ): Promise<void> => {
   const { newFullName } = req.body;
+
   const valid = validator.validateFullName(newFullName);
   if (valid) {
     res.status(400).json({ message: valid });

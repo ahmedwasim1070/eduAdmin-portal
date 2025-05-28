@@ -22,7 +22,8 @@ export const ListerBar = ({
     <>
       <div className="flex flex-row justify-between items-center py-4 px-6">
         <p className="text-textColor font-semibold text-lg">
-          {heading} {quiryLength && quiryLength > 0 && "(" + quiryLength + ")"}
+          {heading}{" "}
+          {quiryLength ? quiryLength > 0 && "(" + quiryLength + ")" : ""}
         </p>
         <div>
           {/* Expand List */}

@@ -3,9 +3,11 @@ import { Router } from "express";
 import { protectRoute, validateRoot } from "../middlewares/auth.middleware.js";
 
 import {
+  quiryUsers,
+  changeStatus,
   changeName,
-  quiryUsers
-} from "../controllers/userFeatures.controller.js";
+  deleteUser,
+} from "../controllers/useroptions.controller.js";
 
 const router = Router();
 
@@ -13,9 +15,10 @@ const router = Router();
 // Root Quiries roots
 router.get("/quiryAll", protectRoute, quiryUsers);
 // Change Status
-// router.post("/change/status", protectRoute, validateRoot, changeStatus);
-
+router.post("/change/status", protectRoute, changeStatus);
 // Change Name
 router.post("/change/name", protectRoute, changeName);
+// Deletes Permanenetly
+router.post("/delete/users", protectRoute, deleteUser);
 
 export default router;

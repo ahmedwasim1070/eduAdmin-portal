@@ -1,8 +1,14 @@
-import { useAuthStore } from "../../store/useAuthStore";
+// React
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
+
+// Zustand
+import { useAuthStore } from "../../store/useAuthStore";
+
+// Icon
 import { LogOut, Settings } from "lucide-react";
 
+// Props for this component
 type NavbarProps = {
   setIsSetting: React.Dispatch<React.SetStateAction<boolean>>;
 };
