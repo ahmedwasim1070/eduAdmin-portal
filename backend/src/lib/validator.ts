@@ -1,100 +1,128 @@
-// Validator
+// Express
+import { Response } from "express";
+
+// For Type script
 type Role = "root" | "principal" | "admin" | "student";
 type Status = "active" | "deleted" | "suspended";
-type RequestedOtpType = "verifyemail" | "forgetpassword";
 
-export class Validator {
-  validateId(id: string): string | null {
-    if (!id) return "ID is required.";
-    if (typeof id !== "string") return "ID must be a string.";
-    return null;
+// Helper function to find errors
+export const errorMessageThrower = (
+  validations: string[],
+  res: Response
+): Promise<void> => {
+  const firstError = validations.find((err) => err !== null);
+  if (firstError) {
+    res.status(400).json({ message: firstError });
+    return;
   }
+};
 
-  validateFullName(name: string): string | null {
-    if (!name) return "Full name is required.";
-    if (typeof name !== "string") return "Full name must be a string.";
-    if (name.length < 3) return "Full name must be at least 3 characters.";
-    if (name.length > 42) return "Full name must be less than 42 characters.";
-    return null;
-  }
+// Validates Full Name
+export const validateFullName = (userFullName: string): string | null => {
+  if (!userFullName) return "Full name is required.";
+  if (typeof userFullName !== "string") return "Full name must be a string.";
+  if (userFullName.length < 3)
+    return "Full name must be at least 3 characters.";
+  if (userFullName.length > 42)
+    return "Full name must be less than 42 characters.";
+  return null;
+};
 
-  validateEmail(email: string): string | null {
-    if (!email) return "Email is required.";
-    if (typeof email !== "string") return "Email must be a string.";
-    const emailRegex = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{0,3})+$/;
-    if (!emailRegex.test(email)) return "Invalid email address.";
-    return null;
-  }
+// Validates Email
+export const validateEmail = (userEmail: string): string | null => {
+  if (!userEmail) return "Email is required.";
+  if (typeof userEmail !== "string") return "Email must be a string.";
+  const emailRegex = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{0,3})+$/;
+  if (!emailRegex.test(userEmail)) return "Invalid email address.";
+  return null;
+};
 
-  validatePhone(contactNumber: string): string | null {
-    if (!contactNumber) return "Contact number is required.";
-    if (typeof contactNumber !== "string")
-      return "Contact number must be a string.";
-    const phoneRegex = /^\+?\d{10,14}$/;
-    if (!phoneRegex.test(contactNumber)) return "Invalid contact number.";
-    return null;
-  }
+// Validate Contact Number
+export const validateContactNUmber = (
+  userContactNumber: string
+): string | null => {
+  if (!userContactNumber) return "Contact number is required.";
+  if (typeof userContactNumber !== "string")
+    return "Contact number must be a string.";
+  const phoneRegex = /^\+?\d{10,14}$/;
+  if (!phoneRegex.test(userContactNumber)) return "Invalid contact number.";
+  return null;
+};
 
-  validatePassword(password: string): string | null {
-    if (!password) return "Password is required.";
-    if (typeof password !== "string") return "Password must be a string.";
-    if (password.length < 8) return "Password must be at least 8 characters.";
-    return null;
-  }
+// Validates Password
+export const validatePassword = (userPassword: string): string | null => {
+  if (!userPassword) return "Password is required.";
+  if (typeof userPassword !== "string") return "Password must be a string.";
+  if (userPassword.length < 8) return "Password must be at least 8 characters.";
+  return null;
+};
 
-  validateConfirmPassword(
-    password: string,
-    confirmPassword: string
-  ): string | null {
-    if (!password) return "Password is required.";
-    if (!confirmPassword) return "Confirm Password is required.";
-    if (typeof password !== "string") return "Password must be a string.";
-    if (typeof confirmPassword !== "string")
-      return "Confirm Password must be a string.";
-    if (password.length < 8) return "Password must be at least 8 characters.";
-    if (confirmPassword.length < 8)
-      return "Confirm Password must be at least 8 characters.";
-    if (confirmPassword !== password)
-      return "password and confirm password does not match !";
-    return null;
-  }
+// Validates Confirm Password
+export const validateConfirmPassword = (
+  userPassword: string,
+  confirmUserPassword: string
+): string | null => {
+  if (!userPassword) return "Password is required.";
+  if (!confirmUserPassword) return "Confirm Password is required.";
+  if (typeof userPassword !== "string") return "Password must be a string.";
+  if (typeof confirmUserPassword !== "string")
+    return "Confirm Password must be a string.";
+  if (userPassword.length < 8) return "Password must be at least 8 characters.";
+  if (confirmUserPassword.length < 8)
+    return "Confirm Password must be at least 8 characters.";
+  if (confirmUserPassword !== userPassword)
+    return "password and confirm password does not match !";
+  return null;
+};
 
-  validateOTP(otp: string): string | null {
-    if (!otp) return "OTP is required";
-    if (typeof otp !== "string") return "OTP must be a stirng";
-    if (otp.length > 6) return "Invalid OTP !";
-    const digitRegex = /^\d*$/;
-    if (!digitRegex.test(otp)) return "OTP should be a string";
-    return null;
-  }
+// Validates OTP
+export const validateOTP = (userOtp: string): string | null => {
+  if (!userOtp) return "OTP is required";
+  if (typeof userOtp !== "string") return "OTP must be a stirng";
+  if (userOtp.length > 6) return "Invalid OTP !";
+  const digitRegex = /^\d*$/;
+  if (!digitRegex.test(userOtp)) return "OTP should be a string";
+  return null;
+};
 
-  validateRole(role: string): string | null {
-    const validRoles: Role[] = ["root", "principal", "admin", "student"];
-    if (!role) return "Role is required.";
-    if (!validRoles.includes(role as Role))
-      return `Invalid role. Valid roles are: ${validRoles.join(", ")}`;
-    return null;
-  }
+// Validates Role
+export const validateRole = (userRole: string): string | null => {
+  const validRoles: Role[] = ["root", "principal", "admin", "student"];
+  if (!userRole) return "Role is required.";
+  if (!validRoles.includes(userRole as Role))
+    return `Invalid role. Valid roles are: ${validRoles.join(", ")}`;
+  return null;
+};
 
-  validateStatus(status: string): string | null {
-    const validStatuses: Status[] = ["active", "deleted", "suspended"];
-    if (!status) return "Status is required.";
-    if (!validStatuses.includes(status as Status))
-      return `Invalid status. Valid statuses are: ${validStatuses.join(", ")}`;
-    return null;
-  }
+// Validates Status
+export const validateStatus = (userStatus: string): string | null => {
+  const validStatuses: Status[] = ["active", "deleted", "suspended"];
+  if (!userStatus) return "Status is required.";
+  if (!validStatuses.includes(userStatus as Status))
+    return `Invalid status. Valid statuses are: ${validStatuses.join(", ")}`;
+  return null;
+};
 
-  validateRequestedOtpType(requestedOtpType: string): string | null {
-    const validateRequestedOtpTypes: RequestedOtpType[] = [
-      "verifyemail",
-      "forgetpassword",
-    ];
-    if (!requestedOtpType) return " Request type is required";
-    if (
-      !validateRequestedOtpTypes.includes(requestedOtpType as RequestedOtpType)
-    )
-      return "Invalid request type";
-    return null;
-  }
+// Validates College Name
+export const validateCollegeName = (userCollegeName: string): string | null => {
+  if (!userCollegeName) return "College name is required.";
+  if (typeof userCollegeName !== "string")
+    return "College name must be a string.";
+  if (userCollegeName.length < 3)
+    return "College Name must be at least 3 characters.";
+  if (userCollegeName.length > 62)
+    return "College name must be less than 62 characters.";
+  return null;
+};
 
-}
+// Validate User Location
+export const validateUserLocation = (userLocation: string): string | null => {
+  if (!userLocation) return "User location is required.";
+  if (typeof userLocation !== "string")
+    return "College location must be a string.";
+  if (userLocation.length < 3)
+    return "User location must be at least 3 characters.";
+  if (userLocation.length > 62)
+    return "User location must be less than 62 characters.";
+  return null;
+};
