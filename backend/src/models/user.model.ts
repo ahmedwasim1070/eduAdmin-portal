@@ -30,7 +30,7 @@ export interface IUser extends Document {
   //   Functions
   isValidPassword(userPassword: string): Promise<boolean>;
   isValidOTP(userOTP: string): Promise<boolean>;
-  isAuthorized(userRole: string);
+  hasPermissionFor(userRole: string);
   incrementLoginAttempt(): void;
   resetLoginAttempt(): void;
 }
@@ -179,7 +179,7 @@ UserSchema.methods.isValidOTP = async function (
 };
 
 // Checks authorization
-UserSchema.methods.isAuthorized = function (
+UserSchema.methods.hasPermissionFor = function (
   this: IUser,
   userRole: string
 ): boolean {
