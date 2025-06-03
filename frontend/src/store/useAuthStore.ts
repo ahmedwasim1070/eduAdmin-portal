@@ -1,5 +1,9 @@
-import { create } from "zustand";
+// React
+import toast from "react-hot-toast";
+// Axios
 import axiosInstance from "../api/axios";
+// Zustand
+import { create } from "zustand";
 
 // Types for useAuthStore
 type Store = {
@@ -8,7 +12,7 @@ type Store = {
   authUser: any | null;
 
   // Functions
-  verifyToken: () => void;
+  verifyToken: () => Promise<void>;
 };
 
 export const useAuthStore = create<Store>()((set) => ({
@@ -21,18 +25,27 @@ export const useAuthStore = create<Store>()((set) => ({
   // Functions
   // Sets User
   verifyToken: async () => {
+    // Enables loader
     set({ isLoading: true });
     try {
-      // Response
-      const res = await axiosInstance.get("auth/validate/authToken");
+      const res = await axiosInstance.get("auth/validate/token");
+
+      // Redirect to login page
+      if (res.data.redirectEmailVerification) {
+        window.location.href = "/verify/email";
+      }
+      //
       if (res.status === 200) {
+        // Success notification
+        toast.success(res.data.message);
+        // Sets user data
         set({ authUser: res.data.authUser });
       }
     } catch (error) {
-      set({ authUser: null });
+      set({ authUser: false });
     } finally {
+      // Disables loader
       set({ isLoading: false });
     }
-    //
   },
 }));

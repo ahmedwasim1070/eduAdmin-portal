@@ -51,7 +51,7 @@ export const validateToken = async (
         message: "Unverified email !",
         redirectEmailVerification: true,
       });
-      return;
+       return;
     }
 
     // Checks for user status
@@ -62,7 +62,6 @@ export const validateToken = async (
 
     // Attach user to request
     req.user = user;
-    res.status(200).json({ message: "Logged In !", authUser: user });
     next();
   } catch (error) {
     console.error("Error in protectRoute middleware:", error);
@@ -81,12 +80,12 @@ export const protectBaseSignup = async (
     // Checks if db's is empty
     const users = await userModel.estimatedDocumentCount();
     if (users > 0) {
-      res.status(403).json({ redirect: false });
+      res
+        .status(403)
+        .json({ message: "Base User already exsists", redirect: false });
       return;
     }
 
-    // redirect if db's is empty
-    res.status(200).json({ redirect: true });
     next();
   } catch (error) {
     console.error("Error in protectBaseSignup middleware:", error);

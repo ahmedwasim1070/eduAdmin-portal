@@ -1,11 +1,15 @@
+// React
+import { useEffect } from "react";
 // React router dom
 import { Navigate, Route, Routes } from "react-router-dom";
-
 // React hot toast
 import { Toaster } from "react-hot-toast";
 
 // Zustand Auth Store
 import { useAuthStore } from "./store/useAuthStore.ts";
+
+// Components
+import { MainLoader } from "./components/Loader.tsx";
 
 // Pages
 import HomePage from "./pages/HomePage";
@@ -14,11 +18,16 @@ import BaseSignupPage from "./pages/BaseSignupPage.tsx";
 
 function App() {
   // Imports for zustand
-  const { authUser } = useAuthStore();
+  const { isLoading, authUser, verifyToken } = useAuthStore();
 
+  // Checks for token
+  useEffect(() => {
+    verifyToken();
+  }, [verifyToken]);
   return (
     <>
       <div id="app">
+        {isLoading && <MainLoader />}
         {/* Notification Toaster */}
         <Toaster />
 

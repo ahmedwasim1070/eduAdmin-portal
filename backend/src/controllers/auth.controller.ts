@@ -6,7 +6,6 @@ import { AuthenticatedRequest } from "../middlewares/auth.middleware.js";
 
 // Validators
 import {
-  errorMessageThrower,
   validateFullName,
   validateEmail,
   validateContactNUmber,
@@ -22,6 +21,23 @@ import userModel from "../models/user.model.js";
 
 // JWT token
 import { createJwtToken } from "../lib/utils.js";
+
+// Send user data after cookie verification
+export const checkAuth = (req: AuthenticatedRequest, res: Response) => {
+  const authUser = req.user;
+  try {
+    // Updates last login
+    authUser.lastLogin = Date.now();
+
+    //
+    res.status(200).json({ message: "Logged In !", authUser });
+    return;
+  } catch (error) {
+    res.status(500).json({ message: "Invalid request !" });
+    console.error("Error in baseSignup controller : ", error);
+    return;
+  }
+};
 
 // Base root user signup
 export const baseSignup = async (
@@ -39,12 +55,16 @@ export const baseSignup = async (
     validatePassword(password),
     validateConfirmPassword(password, confirmPassword),
   ];
-  errorMessageThrower(validations, res);
+  const firstError = validations.find((err) => err !== null);
+  if (firstError) {
+    res.status(400).json({ message: firstError });
+    return;
+  }
   //
   try {
     // Validates for exsisting user
     const isUser = await userModel.findOne({ email });
-    if (!isUser) {
+    if (isUser) {
       res.status(409).json({ message: "User already exsists" });
       return;
     }
@@ -95,7 +115,11 @@ export const signup = async (
     validateConfirmPassword(password, confirmPassword),
     validateRole(role),
   ];
-  errorMessageThrower(validations, res);
+  const firstError = validations.find((err) => err !== null);
+  if (firstError) {
+    res.status(400).json({ message: firstError });
+    return;
+  }
   //
   try {
     // Checks if user already exsists
@@ -133,7 +157,11 @@ export const signup = async (
         validateCollegeName(collegeName),
         validateUserLocation(userLocation),
       ];
-      errorMessageThrower(validations, res);
+      const firstError = validations.find((err) => err !== null);
+      if (firstError) {
+        res.status(400).json({ message: firstError });
+        return;
+      }
       //
 
       // College should exsists to register admin | student
@@ -192,7 +220,11 @@ export const login = async (req: Request, res: Response) => {
 
   // Validations on user payload
   const validations = [validateEmail(email), validatePassword(password)];
-  errorMessageThrower(validations, res);
+  const firstError = validations.find((err) => err !== null);
+  if (firstError) {
+    res.status(400).json({ message: firstError });
+    return;
+  }
   //
   try {
     const authUser = await userModel.findOne({ email });

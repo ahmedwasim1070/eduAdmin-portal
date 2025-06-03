@@ -1,21 +1,6 @@
-// Express
-import { Response } from "express";
-
 // For Type script
 type Role = "root" | "principal" | "admin" | "student";
 type Status = "active" | "deleted" | "suspended";
-
-// Helper function to find errors
-export const errorMessageThrower = (
-  validations: string[],
-  res: Response
-): Promise<void> => {
-  const firstError = validations.find((err) => err !== null);
-  if (firstError) {
-    res.status(400).json({ message: firstError });
-    return;
-  }
-};
 
 // Validates Full Name
 export const validateFullName = (userFullName: string): string | null => {

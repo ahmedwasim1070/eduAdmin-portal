@@ -9,6 +9,7 @@ import {
 
 // Controllers
 import {
+  checkAuth,
   baseSignup,
   signup,
   login,
@@ -19,7 +20,7 @@ import {
 const authRouter = Router();
 
 // Validates cookie and logs in
-authRouter.get("/validate/authToken", validateToken);
+authRouter.get("/validate/token", validateToken, checkAuth);
 // Post requst for Base Signup (only applicable if db's empty)
 authRouter.post("/signup/root/base", protectBaseSignup, baseSignup);
 // Post Request for Signup

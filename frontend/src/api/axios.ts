@@ -11,7 +11,6 @@ export const axiosInstance = axios.create({
     "Content-Type": "application/json",
     Accept: "application/json",
   },
-  timeout: 10000,
 });
 
 // Response Interceptor
@@ -26,23 +25,26 @@ axiosInstance.interceptors.response.use(
       switch (status) {
         // For 400 - Bad Request
         case 400:
+          // dismiss previous notificaiton
+          toast.dismiss();
           toast.error(data?.message || "Bad Request - Invalid data provided");
           console.error("Bad Request:", data?.message);
           break;
 
         // For 401 - Unauthorized
         case 401:
+          // dismiss previous notificaiton
+          toast.dismiss();
           toast.error("Session expired. Please login again.");
           console.error("Unauthorized access");
           // Clear token and redirect
           localStorage.removeItem("token");
-          setTimeout(() => {
-            window.location.href = "/login";
-          }, 1000);
           break;
 
         // For 403 - Forbidden
         case 403:
+          // dismiss previous notificaiton
+          toast.dismiss();
           toast.error(
             data?.message || "Access denied - Insufficient permissions"
           );
@@ -51,18 +53,24 @@ axiosInstance.interceptors.response.use(
 
         // For 404 - Not Found
         case 404:
+          // dismiss previous notificaiton
+          toast.dismiss();
           toast.error(data?.message || "Resource not found");
           console.error("Not Found:", data?.message);
           break;
 
         // For 409 - Conflict
         case 409:
+          // dismiss previous notificaiton
+          toast.dismiss();
           toast.error(data?.message || "Conflict - Resource already exists");
           console.error("Conflict:", data?.message);
           break;
 
         // For 429 - Rate Limited
         case 429:
+          // dismiss previous notificaiton
+          toast.dismiss();
           toast.error(
             data?.message || "Too many requests - Please wait and try again"
           );
@@ -71,33 +79,45 @@ axiosInstance.interceptors.response.use(
 
         // For 500 - Internal Server Error
         case 500:
+          // dismiss previous notificaiton
+          toast.dismiss();
           toast.error("Internal server error - Please try again later");
           console.error("Server Error:", data?.message);
           break;
 
         // For 502 - Bad Gateway
         case 502:
+          // dismiss previous notificaiton
+          toast.dismiss();
           toast.error("Server temporarily unavailable");
           console.error("Bad Gateway");
           break;
 
         // For 503 - Service Unavailable
         case 503:
+          // dismiss previous notificaiton
+          toast.dismiss();
           toast.error("Service unavailable - Please try again later");
           console.error("Service Unavailable");
           break;
 
         // Default case for other status codes
         default:
+          // dismiss previous notificaiton
+          toast.dismiss();
           toast.error(data?.message || `Server error (${status})`);
           console.error(`HTTP ${status}:`, data?.message);
       }
     }
     // Error while connecting to the server
     else if (error.request) {
+      // dismiss previous notificaiton
+      toast.dismiss();
       toast.error("Network Error - please check your internet connection!");
       console.error("Network Error - please check your internet connection!");
     } else {
+      // dismiss previous notificaiton
+      toast.dismiss();
       toast.error("An unexpected error has occurred!");
       console.error("An unexpected error has occurred!");
     }

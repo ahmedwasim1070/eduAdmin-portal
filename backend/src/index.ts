@@ -5,6 +5,8 @@ import express from "express";
 import "dotenv/config";
 // Cookie-parser
 import cookieParser from "cookie-parser";
+// Cors
+import cors from "cors";
 // MongoDB connector function
 import { connectDB } from "./lib/db.js";
 
@@ -15,8 +17,17 @@ import authRouter from "./routes/auth.route.js";
 const app = express();
 
 // Default's
+// JSON parser
+app.use(express.json());
 // Parse cookies
 app.use(cookieParser());
+// Cors
+app.use(
+  cors({
+    origin: "http://localhost:5173",
+    credentials: true,
+  })
+);
 
 // Custom routes
 app.use("/api/auth", authRouter);
