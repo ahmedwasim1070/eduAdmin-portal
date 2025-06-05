@@ -30,10 +30,6 @@ export const useAuthStore = create<Store>()((set) => ({
     try {
       const res = await axiosInstance.get("auth/validate/token");
 
-      // Redirect to login page
-      if (res.data.redirectEmailVerification) {
-        window.location.href = "/verify/email";
-      }
       //
       if (res.status === 200) {
         // Success notification

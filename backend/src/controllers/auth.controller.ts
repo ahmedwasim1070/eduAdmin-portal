@@ -1,8 +1,11 @@
 // Express
 import { Request, Response } from "express";
 
-// Middleware
+// Middleware Setted Custom Request
 import { AuthenticatedRequest } from "../middlewares/auth.middleware.js";
+
+// SMTP mailer
+import { sendOtp } from "./smtp.controller.js";
 
 // Validators
 import {
@@ -102,7 +105,7 @@ export const signup = async (
   // Validate Creater user permissions
   const hasPermission = authUser.hasPermissionFor(role);
   if (!hasPermission) {
-    res.status(401).json({ message: "authorized to perform that action !" });
+    res.status(403).json({ message: "Unauthorized to perform that action !" });
     return;
   }
 
@@ -282,6 +285,56 @@ export const logout = (req: Request, res: Response): Promise<void> => {
   } catch (error) {
     console.error("Error in logout controller:", error);
     res.status(500).json({ message: "Internal server error." });
+    return;
+  }
+};
+
+// Sets the otp to user payload in db and also send email
+export const requestOtp = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  const { email } = req.body;
+
+  // Validations on user payload
+  const firstError = validateEmail(email);
+  if (firstError) {
+    res.status(400).json({ message: firstError });
+  }
+  try {
+    // Validates the exsistance of the user
+    const user = await userModel.findOne({ email });
+    if (!user) {
+      res.status(404).json({ message: "User not found !" });
+      return;
+    }
+
+    // Validate that 1 otp with in 5 minutes
+    if (user.otpCreatedAt && Date.now() - user.otpCreatedAt < 5 * 60 * 1000) {
+      res.status(429).json({ message: "OTP cooldown" });
+      return;
+    }
+
+    // Creates otp
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
+    // Sends OTP to the user email
+    const isEmailSent = await sendOtp(otp, email); //returns boolean
+    if (!isEmailSent) {
+      res.status(500).json({ message: "Error sending the email !" });
+      return;
+    }
+
+    // Sets the otp
+    user.otp = otp;
+    // Sets creation date of otp
+    user.otpCreatedAt = Date.now();
+    // Saves the user
+    user.save();
+
+    res.status(200).json({ message: "OTP emailed !" });
+    return;
+  } catch (error) {
     return;
   }
 };

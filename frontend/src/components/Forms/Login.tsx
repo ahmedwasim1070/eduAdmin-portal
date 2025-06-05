@@ -58,7 +58,7 @@ function Login() {
         toast.dismiss();
         // sucess message
         toast.success(res.data.message);
-        // navigates to login page
+        // navigates to home page
         navigate("/");
       }
     } catch (error) {

@@ -37,18 +37,35 @@ axiosInstance.interceptors.response.use(
           toast.dismiss();
           toast.error("Session expired. Please login again.");
           console.error("Unauthorized access");
+
           // Clear token and redirect
           localStorage.removeItem("token");
+
+          // Redirects to the login page
+          if (window.location.pathname !== "/login") {
+            window.location.href = "/login";
+            return Promise.reject(error);
+          }
           break;
 
         // For 403 - Forbidden
         case 403:
           // dismiss previous notificaiton
+          // Redirect
           toast.dismiss();
           toast.error(
             data?.message || "Access denied - Insufficient permissions"
           );
           console.error("Forbidden access:", data?.message);
+
+          // Redirects to the verify email page if server says
+          if (
+            data.redirectEmailVerification &&
+            window.location.pathname !== "/verify/email"
+          ) {
+            window.location.href = "/verify/email";
+            return Promise.reject(error);
+          }
           break;
 
         // For 404 - Not Found

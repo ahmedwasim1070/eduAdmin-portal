@@ -14,6 +14,7 @@ import {
   signup,
   login,
   logout,
+  requestOtp,
 } from "../controllers/auth.controller.js";
 
 // Creates Router
@@ -29,6 +30,8 @@ authRouter.post("/signup", validateToken, signup);
 authRouter.post("/login", login);
 // Get Request for Logout
 authRouter.get("/logout", logout);
+// Post Request for generating otp and send otp to user email
+authRouter.post("/request/otp", requestOtp);
 
 // Exports Router
 export default authRouter;

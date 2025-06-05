@@ -15,6 +15,7 @@ import { MainLoader } from "./components/Loader.tsx";
 import HomePage from "./pages/HomePage";
 import LoginPage from "./pages/LoginPage.tsx";
 import BaseSignupPage from "./pages/BaseSignupPage.tsx";
+import VerifyEmailPage from "./pages/VerifyEmailPage.tsx";
 
 function App() {
   // Imports for zustand
@@ -48,6 +49,8 @@ function App() {
             path="/base/root/signup"
             element={authUser ? <Navigate to="/" /> : <BaseSignupPage />}
           />
+          {/* Verify Email Page */}
+          <Route path="/verify/email" element={<VerifyEmailPage />} />
         </Routes>
       </div>
     </>
