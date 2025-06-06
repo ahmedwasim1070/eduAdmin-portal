@@ -17,6 +17,7 @@ import {
   validateRole,
   validateCollegeName,
   validateUserLocation,
+  validateOTP,
 } from "../lib/validator.js";
 
 // User Model from mongodb
@@ -32,8 +33,11 @@ export const checkAuth = (req: AuthenticatedRequest, res: Response) => {
     // Updates last login
     authUser.lastLogin = Date.now();
 
-    //
-    res.status(200).json({ message: "Logged In !", authUser });
+    // Safe User Payload
+    const { password, ...userWithoutPassword } = authUser.toObject();
+    res
+      .status(200)
+      .json({ message: "Logged In !", authUser: userWithoutPassword });
     return;
   } catch (error) {
     res.status(500).json({ message: "Invalid request !" });
@@ -246,18 +250,18 @@ export const login = async (req: Request, res: Response) => {
     }
 
     // Validates password
-    const validPassword = authUser.isValidPassword(password);
+    const validPassword = await authUser.isValidPassword(password);
     if (!validPassword) {
       // Increments login attempt by one
       authUser.incrementLoginAttempt();
-      authUser.save();
+      await authUser.save();
       res.status(400).json({ message: "Invalid credentials !" });
       return;
     }
 
     // Resets login attempts
     authUser.resetLoginAttempt();
-    authUser.save();
+    await authUser.save();
 
     // Creates authentication cookie
     createJwtToken(authUser._id, res);
@@ -265,8 +269,8 @@ export const login = async (req: Request, res: Response) => {
     res.status(200).json({ message: "Credentials matched !" });
     return;
   } catch (error) {
-    res.status(500).json({ message: "Invalid request !" });
     console.error("Error in login controller : ", error);
+    res.status(500).json({ message: "Invalid request !" });
     return;
   }
 };
@@ -330,11 +334,101 @@ export const requestOtp = async (
     // Sets creation date of otp
     user.otpCreatedAt = Date.now();
     // Saves the user
-    user.save();
+    await user.save();
 
     res.status(200).json({ message: "OTP emailed !" });
     return;
   } catch (error) {
+    console.error("Error in requestOtp controller :", error);
+    res.status(500).json({ message: "Internet server error !" });
+    return;
+  }
+};
+
+// Verifies the otp stored in db
+export const verifyOtp = async (req: Request, res: Response): Promise<void> => {
+  const { email, otp } = req.body;
+
+  // Validations on user payload
+  const validations = [validateEmail(email), validateOTP(otp)];
+  const firstError = validations.find((err) => err !== null);
+  if (firstError) {
+    res.status(400).json({ message: firstError });
+    return;
+  }
+  try {
+    // Validates exsistance of the user
+    const user = await userModel.findOne({ email });
+    if (!user) {
+      res.status(404).json({ message: "User not found !" });
+      return;
+    }
+
+    // Validates OTP
+    const isValid =await user.isValidOTP(otp);
+    if (!isValid) {
+      res.status(400).json({ message: "Invalid or expired OTP !" });
+      return;
+    }
+
+    // Validates email
+    user.emailStatus = "verified";
+    // Resets Password attempt
+    user.loginAttempt = 0;
+    // deletes OTP
+    user.otp = undefined;
+    user.markModified("otp");
+    // delete otpCreationDate
+    user.otpCreatedAt = undefined;
+    user.markModified("otpCreatedAt");
+    // Saves changes
+    await user.save();
+
+    // Creates authentication cookie
+    createJwtToken(user._id, res);
+
+    // On success
+    res.status(200).json({ message: "Otp Matched !" });
+    return;
+  } catch (error) {
+    console.error("Error in verifyOtp controller :", error);
+    res.status(500).json({ message: "Internel server error !" });
+    return;
+  }
+};
+
+// Changes the password
+export const changePassword = async (
+  req: AuthenticatedRequest,
+  res: Response
+) => {
+  // Takes from token
+  const authUser = req.user;
+  // Takes from the form from client
+  const { newPassword, confirmNewPassword } = req.body;
+
+  // Validations on user payload
+  const validations = [
+    validatePassword(newPassword),
+    validateConfirmPassword(newPassword, confirmNewPassword),
+  ];
+  const firstError = validations.find((err) => err !== null);
+  if (firstError) {
+    res.status(400).json({ message: firstError });
+    return;
+  }
+  try {
+    authUser.password = newPassword;
+    authUser.markModified("password");
+    // Saves user
+    await authUser.save();
+
+    // On success
+    res.status(200).json({ message: "Password updated !" });
+    return;
+  } catch (error) {
+    console.error("Error in changePassword controller :", error);
+    res.status(500).json({ message: "Internel server error !" });
     return;
   }
 };

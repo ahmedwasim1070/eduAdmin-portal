@@ -10,12 +10,12 @@ import { MainLoader } from "../Loader";
 // Component FormField
 import { TextFormField } from "./FormField";
 
+// Signup Props Types
 type SignupProps = {
-  componentType: string;
   heading: string;
 };
 
-function Signup({ componentType, heading }: SignupProps) {
+function Signup({ heading }: SignupProps) {
   // Navigator to redirect
   const navigate = useNavigate();
 

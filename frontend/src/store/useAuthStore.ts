@@ -1,5 +1,3 @@
-// React
-import toast from "react-hot-toast";
 // Axios
 import axiosInstance from "../api/axios";
 // Zustand
@@ -13,6 +11,7 @@ type Store = {
 
   // Functions
   verifyToken: () => Promise<void>;
+  setAuthUser: (user: any | null) => void;
 };
 
 export const useAuthStore = create<Store>()((set) => ({
@@ -32,8 +31,6 @@ export const useAuthStore = create<Store>()((set) => ({
 
       //
       if (res.status === 200) {
-        // Success notification
-        toast.success(res.data.message);
         // Sets user data
         set({ authUser: res.data.authUser });
       }
@@ -43,5 +40,10 @@ export const useAuthStore = create<Store>()((set) => ({
       // Disables loader
       set({ isLoading: false });
     }
+  },
+
+  // Updates auth User payload
+  setAuthUser: (user) => {
+    set({ authUser: user });
   },
 }));

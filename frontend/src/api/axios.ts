@@ -35,17 +35,8 @@ axiosInstance.interceptors.response.use(
         case 401:
           // dismiss previous notificaiton
           toast.dismiss();
-          toast.error("Session expired. Please login again.");
+          toast.error(data.message || "Session expired. Please login again.");
           console.error("Unauthorized access");
-
-          // Clear token and redirect
-          localStorage.removeItem("token");
-
-          // Redirects to the login page
-          if (window.location.pathname !== "/login") {
-            window.location.href = "/login";
-            return Promise.reject(error);
-          }
           break;
 
         // For 403 - Forbidden

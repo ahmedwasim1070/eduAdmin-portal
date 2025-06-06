@@ -160,10 +160,10 @@ const UserSchema: Schema<IUser> = new Schema(
 
 // Externel functions
 // Compare password
-UserSchema.methods.isValidPassword = function (
+UserSchema.methods.isValidPassword = async function (
   userPassword: string
 ): Promise<boolean> {
-  return bcrypt.compare(userPassword, this.password);
+  return await bcrypt.compare(userPassword, this.password);
 };
 
 // Comapre OTP
@@ -172,7 +172,7 @@ UserSchema.methods.isValidOTP = async function (
   userOTP: string
 ): Promise<boolean> {
   if (this.otp && !(Date.now() - this.otpCreatedAt > 5 * 60 * 1000)) {
-    return bcrypt.compare(userOTP, this.otp);
+    return await bcrypt.compare(userOTP, this.otp);
   }
 
   return false;

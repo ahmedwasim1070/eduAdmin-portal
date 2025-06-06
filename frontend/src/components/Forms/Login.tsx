@@ -1,6 +1,6 @@
 // React
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import toast from "react-hot-toast";
 // Axios custom API
 import axiosInstance from "../../api/axios";
@@ -46,6 +46,7 @@ function Login() {
     try {
       const res = await axiosInstance.post("auth/login", formData);
 
+      // On success
       if (res.status === 200) {
         // Verify Cookie to get user data
         verifyToken();
@@ -101,6 +102,14 @@ function Login() {
               placeholder="Enter Password ..."
               handleChange={handleChange}
             />
+
+            {/* Link to forget/password */}
+            <Link
+              to="/forget/password"
+              className="text-sm text-textColor underline mt-2"
+            >
+              Forget Password ?
+            </Link>
 
             {/* Button */}
             <button

@@ -5,7 +5,7 @@ function VerifyEmailPage() {
   return (
     <>
       <div id="verifyEmailPage">
-        <VerifyEmail />
+        <VerifyEmail componenType="verifyEmail" heading="Verify Email" />
       </div>
     </>
   );

@@ -64,7 +64,7 @@ export const validateConfirmPassword = (
 export const validateOTP = (userOtp: string): string | null => {
   if (!userOtp) return "OTP is required";
   if (typeof userOtp !== "string") return "OTP must be a stirng";
-  if (userOtp.length > 6) return "Invalid OTP !";
+  if (userOtp.length === 5) return "Invalid OTP !";
   const digitRegex = /^\d*$/;
   if (!digitRegex.test(userOtp)) return "OTP should be a string";
   return null;

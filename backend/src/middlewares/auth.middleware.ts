@@ -37,9 +37,7 @@ export const validateToken = async (
     }
 
     // Fetch user from DB
-    const user = await userModel
-      .findById(verifiedToken.userId)
-      .select("-password");
+    const user = await userModel.findById(verifiedToken.userId);
     if (!user) {
       res.status(404).json({ message: "User not found!" });
       return;
@@ -51,7 +49,7 @@ export const validateToken = async (
         message: "Unverified email !",
         redirectEmailVerification: true,
       });
-       return;
+      return;
     }
 
     // Checks for user status

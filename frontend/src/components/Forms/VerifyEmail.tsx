@@ -4,13 +4,28 @@ import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 // Axios custom API
 import axiosInstance from "../../api/axios";
+// Zustand
+import { useAuthStore } from "../../store/useAuthStore";
 
 // Component Loader
 import { BtnLoader, MainLoader } from "../Loader";
 // Component TextField Form
 import { TextFormField } from "./FormField";
 
-function VerifyEmail() {
+// Verify Email Props types
+type VerifyEmailProps = {
+  componenType: string;
+  heading: string;
+  setIsVerified?: React.Dispatch<React.SetStateAction<boolean>>;
+};
+
+function VerifyEmail({
+  componenType,
+  heading,
+  setIsVerified,
+}: VerifyEmailProps) {
+  // Zustand functions
+  const { verifyToken } = useAuthStore();
   // Navigator to redirect
   const navigate = useNavigate();
 
@@ -72,6 +87,7 @@ function VerifyEmail() {
     try {
       const res = await axiosInstance.post("auth/request/otp", formData);
 
+      // On success
       if (res.status === 200) {
         // Sets timer
         setOtpCooldown(300);
@@ -84,6 +100,43 @@ function VerifyEmail() {
     } finally {
       // Ends loader
       setIsRequesting(false);
+    }
+  };
+
+  // Handle Submit verifies email
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    // Prevents default
+    e.preventDefault();
+    // Enables loader
+    setIsVerifying(true);
+    try {
+      const res = await axiosInstance.post("auth/verify/otp", formData);
+
+      // On success
+      if (res.status === 200) {
+        // dismiss previous notificaiton
+        toast.dismiss();
+        // sucess message
+        toast.success(res.data.message);
+        // Reset's forms
+        setFormData({
+          email: "",
+          otp: "",
+        });
+
+        // Navigates to homepage if it is verify email page
+        if (componenType === "verifyEmail") {
+          navigate("/");
+          verifyToken();
+        }
+        // Ask for new password if it is forgetPassword from
+        if (componenType === "forgetPassword" && setIsVerified)
+          setIsVerified(true);
+      }
+    } catch (error) {
+    } finally {
+      // Disables loader
+      setIsVerifying(false);
     }
   };
 
@@ -127,11 +180,11 @@ function VerifyEmail() {
 
           {/* Heading */}
           <h1 className="text-center text-textColor font-bold text-2xl my-4">
-            Verify Email
+            {heading}
           </h1>
 
           {/* Form Starts here */}
-          <form>
+          <form onSubmit={handleSubmit}>
             {/* Email And Button */}
             <div className="w-full flex flex-row justify-center items-center gap-x-2">
               {/* Email Field */}
@@ -192,7 +245,7 @@ function VerifyEmail() {
                   : "bg-primaryColor cursor-pointer hover:bg-transparent hover:text-primaryColor "
               }`}
             >
-              <p>Verify Email</p>
+              <p>{heading}</p>
             </button>
             {/*  */}
           </form>
